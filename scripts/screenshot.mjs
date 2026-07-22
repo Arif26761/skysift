@@ -76,8 +76,21 @@ const SCENES = [
   },
 
   {
+    // Partial failure: a city that does not exist, rendered inline beside the
+    // ones that resolved. This is the Part 3 requirement made visible.
+    name: "errors-light",
+    viewport: DESKTOP,
+    theme: "light",
+    async act(page) {
+      await page.fill("#city-input", "Nowhereville");
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(3000);
+    },
+  },
+
+  {
     // Skeletons. The API is stalled so the loading state is actually catchable —
-    // fixtures resolve in ~250ms otherwise.
+    // it would otherwise be gone in a few hundred milliseconds.
     name: "loading-light",
     viewport: DESKTOP,
     theme: "light",

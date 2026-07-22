@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# NOTE: `vercel link` appends its own `.vercel` and `.env*` rules here on every
+# run. They are removed deliberately — a bare `.env*` placed *after* the
+# `!.env.example` exception above silently re-ignores the template that the
+# README tells people to copy. The rules above already cover both cases.

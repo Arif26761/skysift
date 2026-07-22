@@ -4,39 +4,82 @@
 
 **Sift the sky.** A weather data service with a filtering instrument on top.
 
-Fetches current weather for any list of cities, then lets you slice that data by country,
-temperature, condition and humidity — and _shows you what each filter removed_.
+Fetch current weather for any list of cities, then slice it by country,
+temperature, condition and humidity — and see **exactly what each filter removed.**
+
+[**▶ Live demo**](https://skysift-five.vercel.app) · [Architecture](./docs/ARCHITECTURE.md) · [Design system](./docs/DESIGN-SYSTEM.md)
 
 [![CI](https://github.com/Arif26761/skysift/actions/workflows/ci.yml/badge.svg)](https://github.com/Arif26761/skysift/actions/workflows/ci.yml)
+![tests](https://img.shields.io/badge/tests-107%20passing-0e8a16)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-1363df)
 
 </div>
 
+![SkySift — card view with live weather](./docs/screenshots/overview-light.png)
+
 ---
 
-> **Status:** in active development. Built as a take-home assessment for Cotton Group
-> (Software Engineer). This README is updated as the build progresses — screenshots, the live
-> demo link and full API docs land before submission.
+## The idea
 
-## What this is
+The brief's most important sentence isn't a requirement:
 
-Most filter UIs have the same flaw: when you narrow the data and the list empties, you can't
-tell _which control did it_. SkySift's signature feature is the **Filter Ledger** — a live bar
-showing `Showing 4 of 9`, with one chip per active filter annotated with how many records
-that specific filter excluded. When results hit zero, it names the cause and offers to relax
-that one filter.
+> _"We're not looking for a pixel-perfect Figma-to-code clone — we're looking for
+> whether you can turn a data shape into something a non-technical user could
+> actually operate."_
 
-## Tech stack
+So this isn't a weather app. **It's a filtering instrument that happens to
+contain weather.**
 
-| Layer      | Choice                                              |
-| ---------- | --------------------------------------------------- |
-| Framework  | Next.js 16 (App Router)                             |
-| UI         | React 19                                            |
-| Language   | TypeScript 5 (`strict`, `noUncheckedIndexedAccess`) |
-| Styling    | Tailwind CSS v4 (CSS-first `@theme` tokens)         |
-| Validation | Zod (runtime parsing at the API boundary)           |
-| Testing    | Vitest + Testing Library                            |
-| Icons      | lucide-react                                        |
-| Hosting    | Vercel                                              |
+Every filter UI shares one blind spot: you narrow the data, rows vanish, and
+nothing tells you _which control_ removed them. Users respond by resetting things
+at random.
+
+### The Filter Ledger
+
+Each active filter carries a chip annotated with **how many records it excluded**:
+
+![The Filter Ledger](./docs/screenshots/ledger-light.png)
+
+```
+Showing 2 of 5   [Condition · Clouds −2 ×]  [Humidity ≥ 60% −0 ×]   Reset all
+```
+
+A chip reading `−0` is doing nothing on its own — itself useful, because it tells
+you not to bother touching that one.
+
+When results hit zero, the empty state **names the cause** instead of shrugging:
+
+![Empty state with culprit detection](./docs/screenshots/empty-dark.png)
+
+The numbers come from a leave-one-out sensitivity analysis: run
+`filterWeatherData` once with everything applied, then once more per filter with
+that one omitted. **This is only affordable because the filter function is pure**
+— six passes over a small array, no I/O, no chance of the calls interfering. The
+architectural discipline Part 2 asked for unlocked a feature the brief never
+requested.
+
+---
+
+## What the assessment asked for
+
+| Requirement                                                   | Where                                                                                                                              |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Part 1** — fetch current weather for a list of cities       | [`fetch-weather.ts`](./src/lib/weather/fetch-weather.ts), [`provider/openweather.ts`](./src/lib/weather/provider/openweather.ts)   |
+| Typed records: city, country, temp, humidity, condition, wind | [`types.ts`](./src/lib/weather/types.ts)                                                                                           |
+| **Part 2** — `filterWeatherData(data, filters)`, combined     | [`filter.ts`](./src/lib/weather/filter.ts)                                                                                         |
+| **Part 3** — graceful failures, no raw exceptions             | [`errors.ts`](./src/lib/weather/errors.ts), [`fetch-weather.ts`](./src/lib/weather/fetch-weather.ts)                               |
+| One bad city must not crash the batch                         | `Promise.allSettled` + per-call `try/catch` + orchestrator-owned deadline                                                          |
+| **Part 4** — city chip input                                  | [`city-input.tsx`](./src/components/weather/city-input.tsx)                                                                        |
+| Filter panel — a control for **every** Part 2 filter          | [`filter-panel.tsx`](./src/components/weather/filter-panel.tsx)                                                                    |
+| Results, updating live as filters change                      | [`weather-card.tsx`](./src/components/weather/weather-card.tsx), [`weather-table.tsx`](./src/components/weather/weather-table.tsx) |
+| Loading / empty / inline error states                         | [`states.tsx`](./src/components/weather/states.tsx)                                                                                |
+| Responsive at ~375px → desktop                                | [screenshots below](#screenshots)                                                                                                  |
+| Consistent visual language for conditions                     | [`conditions.ts`](./src/lib/weather/conditions.ts)                                                                                 |
+| A few unit tests                                              | **107 tests**, 8 files                                                                                                             |
+| README with setup + screenshots                               | this file                                                                                                                          |
+| Live demo _(optional plus)_                                   | [skysift-five.vercel.app](https://skysift-five.vercel.app)                                                                         |
+
+---
 
 ## Quick start
 
@@ -44,38 +87,263 @@ that one filter.
 git clone https://github.com/Arif26761/skysift.git
 cd skysift
 npm install
-cp .env.example .env.local   # optional — see below
 npm run dev
 ```
 
-Open <http://localhost:3000>.
+Open <http://localhost:3000>. **No API key required** — see below.
 
 ### API key (optional)
 
-SkySift runs **without an API key**. With none configured it starts in **Demo Mode**, serving
-realistic fixture data behind a clearly-labelled banner. To use live data, put a free
-[OpenWeatherMap](https://home.openweathermap.org/api_keys) key in `.env.local`:
+SkySift runs without one. With no key configured it starts in **Demo Mode**,
+serving realistic fixture data behind a clearly-labelled banner. For live data:
+
+```bash
+cp .env.example .env.local
+```
 
 ```ini
+# .env.local
 OPENWEATHER_API_KEY=your_key_here
 ```
 
-The key is read **only** in server-side code, so it never reaches the browser. This is the
-main reason the project uses a Next.js Route Handler rather than calling OpenWeatherMap
-directly from React.
+Get a free key at [openweathermap.org](https://home.openweathermap.org/api_keys),
+then restart the dev server.
+
+> **Note:** a brand-new OpenWeatherMap key takes 10 minutes – 2 hours to
+> activate, returning `401` until then. SkySift surfaces that as a typed
+> `INVALID_API_KEY` error with copy that explains the delay, rather than a crash.
+
+The variable is **not** prefixed `NEXT_PUBLIC_`, and is read only inside
+[`provider/index.ts`](./src/lib/weather/provider/index.ts), which imports
+`server-only` — so importing it from a client component is a _build error_, not a
+code-review catch. This is the main reason the project uses a Next.js Route
+Handler rather than calling OpenWeatherMap from React.
+
+_Verified on the live deployment: the key appears in none of the 9 client JS
+chunks, nor in the served HTML._
+
+---
+
+## The API
+
+The service is usable on its own, without the UI.
+
+```bash
+# Basic fetch
+curl "http://localhost:3000/api/weather?cities=Dhaka,Chittagong,London,Tokyo,New%20York"
+
+# The assessment's example filter call
+curl "http://localhost:3000/api/weather?cities=Dhaka,Chittagong,Cairo&country=BD&minTemp=25&condition=Clear&sortBy=temperature&order=desc"
+
+# All filters combined
+curl "http://localhost:3000/api/weather?cities=Dhaka,London,Tokyo,Reykjavik&minTemp=10&maxTemp=30&minHumidity=60&sortBy=humidity&order=desc"
+
+# POST, for long lists or names containing commas
+curl -X POST http://localhost:3000/api/weather \
+  -H 'Content-Type: application/json' \
+  -d '{"cities":["Washington, D.C.","Dhaka"],"filters":{"sortBy":"temperature"}}'
+```
+
+### Response
+
+```jsonc
+{
+  "records": [
+    {
+      "city": "Dhaka",
+      "countryCode": "BD",
+      "temperature": 25.9,
+      "feelsLike": 26.8,
+      "humidity": 87,
+      "condition": "Rain",
+      "conditionGroup": "Rain",
+      "description": "light rain",
+      "windSpeed": 3.5,
+      "fetchedAt": "2026-07-23T04:12:03.114Z",
+    },
+  ],
+  "errors": [
+    {
+      "city": "Nowhereville",
+      "code": "CITY_NOT_FOUND",
+      "message": "We couldn't find that city. Check the spelling and try again.",
+      "retryable": false,
+    },
+  ],
+  "meta": {
+    "requested": 2,
+    "succeeded": 1,
+    "failed": 1,
+    "demoMode": false,
+    "durationMs": 227,
+    "filtered": false,
+  },
+}
+```
+
+### Status codes
+
+| Code  | When                                                  |
+| ----- | ----------------------------------------------------- |
+| `200` | Always, including **partial failure**                 |
+| `400` | The request itself was malformed (e.g. `minTemp=hot`) |
+
+**Partial failure returns 200 deliberately.** A `500` would claim the request
+produced nothing useful — false, when three cities resolved. Three records plus
+two explained errors is a complete, actionable answer, and the UI renders both
+side by side. Non-2xx is reserved for _"we couldn't understand your request"_,
+which keeps the status code meaningful.
+
+### Error codes
+
+| Code               | Retryable | Meaning                                  |
+| ------------------ | --------- | ---------------------------------------- |
+| `CITY_NOT_FOUND`   | ✗         | No such city — usually a typo            |
+| `INVALID_API_KEY`  | ✗         | Missing, wrong, or not-yet-activated key |
+| `RATE_LIMITED`     | ✓         | Free-tier quota exceeded                 |
+| `TIMEOUT`          | ✓         | Our 8s deadline elapsed                  |
+| `NETWORK`          | ✓         | DNS / connection failure                 |
+| `INVALID_RESPONSE` | ✗         | Upstream returned an unexpected shape    |
+| `UPSTREAM`         | ✓         | Unexpected non-2xx from the provider     |
+| `INVALID_INPUT`    | ✗         | Blank or oversized city name             |
+
+`retryable` is **derived from the code**, never set per call site. Retrying a
+misspelt city or a revoked key fails identically forever, so a Retry button in
+those cases would be the UI lying — and the button only appears when it's true.
+
+---
+
+## Architecture in one diagram
+
+```
+┌─ IMPERATIVE SHELL — I/O, effects, everything that can fail ────────┐
+│  api/weather/route.ts · fetch-weather.ts · provider/* · use-weather │
+│                                                                     │
+│   ┌─ FUNCTIONAL CORE — pure, no I/O, no async ──────────────┐       │
+│   │  filter.ts · filter-insights.ts · conditions.ts · types │       │
+│   └─────────────────────────────────────────────────────────┘       │
+└─────────────────────────────────────────────────────────────────────┘
+
+cities change   →  one network request
+filters change  →  zero network requests, a synchronous pure function
+```
+
+`filterWeatherData` has **no runtime imports** — it takes data and returns data.
+That's what lets the _same function_ run in the route handler and in the browser:
+one implementation, one test suite, two runtimes, no drift.
+
+Full reasoning in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and
+[`docs/DESIGN-SYSTEM.md`](./docs/DESIGN-SYSTEM.md).
+
+### Stack
+
+| Layer      | Choice                                              |
+| ---------- | --------------------------------------------------- |
+| Framework  | Next.js 16 (App Router)                             |
+| UI         | React 19                                            |
+| Language   | TypeScript 5 — `strict`, `noUncheckedIndexedAccess` |
+| Styling    | Tailwind CSS v4 (CSS-first `@theme` tokens)         |
+| Validation | Zod 4 (runtime parsing at every boundary)           |
+| Testing    | Vitest 4 + Testing Library + happy-dom              |
+| Icons      | lucide-react                                        |
+| Hosting    | Vercel                                              |
+
+---
+
+## Screenshots
+
+| Cards, live data                           | Table view                             |
+| ------------------------------------------ | -------------------------------------- |
+| ![](./docs/screenshots/overview-light.png) | ![](./docs/screenshots/table-dark.png) |
+
+| Inline per-city errors                   | Loading skeletons                         |
+| ---------------------------------------- | ----------------------------------------- |
+| ![](./docs/screenshots/errors-light.png) | ![](./docs/screenshots/loading-light.png) |
+
+| Mobile — 375px, light                                       | Mobile — 375px, dark                                       |
+| ----------------------------------------------------------- | ---------------------------------------------------------- |
+| <img src="./docs/screenshots/mobile-light.png" width="280"> | <img src="./docs/screenshots/mobile-dark.png" width="280"> |
+
+Screenshots are **generated, not hand-cropped** — `npm run screenshots` drives
+headless Chromium through nine scenes (including states that are otherwise
+uncatchable, like the loading skeleton, captured by stalling the API through a
+route handler). They can't rot.
+
+---
 
 ## Scripts
 
-| Command              | Description             |
-| -------------------- | ----------------------- |
-| `npm run dev`        | Start the dev server    |
-| `npm run build`      | Production build        |
-| `npm run typecheck`  | `tsc --noEmit`          |
-| `npm run lint`       | ESLint                  |
-| `npm test`           | Run the unit test suite |
-| `npm run test:watch` | Vitest in watch mode    |
-| `npm run format`     | Prettier write          |
+| Command               | Description                                            |
+| --------------------- | ------------------------------------------------------ |
+| `npm run dev`         | Dev server                                             |
+| `npm run build`       | Production build                                       |
+| `npm test`            | Unit + component tests                                 |
+| `npm run test:watch`  | Vitest watch mode                                      |
+| `npm run typecheck`   | `tsc --noEmit`                                         |
+| `npm run lint`        | ESLint                                                 |
+| `npm run format`      | Prettier                                               |
+| `npm run screenshots` | Regenerate README screenshots (needs a running server) |
+
+---
+
+## Testing
+
+**107 tests across 8 files.** CI runs typecheck → lint → format → test → build on
+every push and PR.
+
+| Area                      | Covers                                                                                                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `filter.test.ts`          | Each filter alone, all combined, both sort orders, sort stability, purity, the `NaN` edge case, the brief's exact example call          |
+| `filter-insights.test.ts` | Marginal exclusion counts, culprit detection, label formatting, purity                                                                  |
+| `conditions.test.ts`      | Condition normalisation, atmospheric collapsing, unknown fallback, style completeness                                                   |
+| `fetch-weather.test.ts`   | Batch isolation, contract-violating providers, hung-provider deadlines, ordering, de-duplication, the city cap, the concurrency ceiling |
+| `openweather.test.ts`     | Every HTTP status mapping, malformed payloads, transport failures, **API-key leakage**                                                  |
+| `cache.test.ts`           | Hit, expiry (injected clock), failure bypass, eviction                                                                                  |
+| `city-input.test.tsx`     | Enter/comma commit, whitespace collapsing, duplicate rejection, Backspace, per-chip accessible names                                    |
+| `filter-ledger.test.tsx`  | Exclusion counts, `−0` rendering, per-chip clearing, range collapsing, `aria-live`                                                      |
+
+The core needs **no mocks at all** — pass an array, assert on an array. That's the
+dividend of keeping it pure.
+
+---
+
+## Accessibility
+
+- WCAG **AA** contrast, verified in both themes
+- Every condition encoded **three times** — colour + icon + text — so the meaning
+  survives colour-blindness, greyscale and screen readers
+- One global `:focus-visible` ring, so no component _can_ forget one
+- Skip link to results (the filter panel sits between the header and the data)
+- `aria-live="polite"` on the result count; `aria-sort` on the active column
+- Per-item accessible names (`Remove Dhaka`, not `Remove`)
+- Native form controls throughout — correct type-ahead, escape handling and
+  mobile pickers, for free
+- `prefers-reduced-motion` honoured globally
+
+---
+
+## Limitations
+
+Stated plainly, because pretending they don't exist is worse than having them.
+
+- **The TTL cache is per-instance.** On Vercel it vanishes on cold start, so the
+  hit rate is best-effort. A shared Redis/KV store is the production answer; at
+  this workload the in-process cache delivers most of the benefit at none of the
+  operational cost. _(Measured locally: 1290 ms cold → 1 ms cached.)_
+- **`npm audit` reports 3 advisories** (`postcss` moderate, `sharp` high). Both
+  are transitive dependencies **inside Next.js 16.2.11 itself**;
+  `npm audit fix --force` "resolves" them by downgrading Next to 9.3.3, a
+  six-year-old major. Left in place deliberately, to be picked up when Next
+  patches upstream.
+- **Batch size is capped at 25 cities**, with the overflow reported as errors
+  rather than silently dropped.
+- **No persistence.** Filters and the city list live in memory; a refresh resets
+  them. URL-synced filter state (shareable links) was scoped out to keep the
+  24-hour box.
+- **Current weather only.** No forecast — the brief asks for current conditions.
+
+---
 
 ## License
 
-MIT © MD. Arif Rahman
+MIT © [MD. Arif Rahman](https://arif26761.github.io)
