@@ -273,16 +273,17 @@ route handler). They can't rot.
 
 ## Scripts
 
-| Command               | Description                                            |
-| --------------------- | ------------------------------------------------------ |
-| `npm run dev`         | Dev server                                             |
-| `npm run build`       | Production build                                       |
-| `npm test`            | Unit + component tests                                 |
-| `npm run test:watch`  | Vitest watch mode                                      |
-| `npm run typecheck`   | `tsc --noEmit`                                         |
-| `npm run lint`        | ESLint                                                 |
-| `npm run format`      | Prettier                                               |
-| `npm run screenshots` | Regenerate README screenshots (needs a running server) |
+| Command                  | Description                                            |
+| ------------------------ | ------------------------------------------------------ |
+| `npm run dev`            | Dev server                                             |
+| `npm run build`          | Production build                                       |
+| `npm test`               | Unit + component tests                                 |
+| `npm run test:watch`     | Vitest watch mode                                      |
+| `npm run typecheck`      | `tsc --noEmit`                                         |
+| `npm run lint`           | ESLint                                                 |
+| `npm run format`         | Prettier                                               |
+| `npm run screenshots`    | Regenerate README screenshots (needs a running server) |
+| `npm run check:contrast` | Audit every design token against WCAG AA               |
 
 ---
 
@@ -309,7 +310,7 @@ dividend of keeping it pure.
 
 ## Accessibility
 
-- WCAG **AA** contrast, verified in both themes
+- WCAG **AA** contrast, **measured** in both themes by `npm run check:contrast`, which parses the tokens straight out of `globals.css` so the audit cannot drift from what ships
 - Every condition encoded **three times** — colour + icon + text — so the meaning
   survives colour-blindness, greyscale and screen readers
 - One global `:focus-visible` ring, so no component _can_ forget one

@@ -228,7 +228,7 @@ function Select({
       id={id}
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="border-line bg-surface text-text hover:border-line-strong h-9 w-full rounded-[9px] border px-2.5 text-sm transition-colors"
+      className="border-line-strong bg-surface text-text hover:border-primary h-9 w-full rounded-[9px] border px-2.5 text-sm transition-colors"
     >
       {children}
     </select>
@@ -275,7 +275,7 @@ function NumberInput({
         const raw = event.target.value;
         onChange(raw === "" ? undefined : Number(raw));
       }}
-      className="border-line bg-surface text-text hover:border-line-strong sky-numeric h-9 w-full rounded-[9px] border px-2.5 text-sm transition-colors"
+      className="border-line-strong bg-surface text-text hover:border-primary sky-numeric h-9 w-full rounded-[9px] border px-2.5 text-sm transition-colors"
     />
   );
 }

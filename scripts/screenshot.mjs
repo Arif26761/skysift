@@ -32,6 +32,7 @@ const MOBILE = { width: 375, height: 820 };
  * @property {{width:number,height:number}} viewport
  * @property {"light"|"dark"} theme
  * @property {boolean} [fullPage]
+ * @property {boolean} [waitForData] wait for results before acting (default true)
  * @property {(page: import("playwright").Page) => Promise<void>} [prepare] runs before navigation
  * @property {(page: import("playwright").Page) => Promise<void>} [act] runs after load
  */
@@ -47,7 +48,16 @@ const SCENES = [
     viewport: DESKTOP,
     theme: "light",
     async act(page) {
-      await page.selectOption("#filter-condition", "Clouds");
+      /*
+       * Pick by index, not by value.
+       *
+       * The condition dropdown is populated from whatever weather is actually
+       * loaded, so hard-coding "Clouds" makes this scene fail on any day when no
+       * selected city is cloudy — which is exactly what happened. Index 1 is the
+       * first real condition after the "All conditions" placeholder, whatever it
+       * happens to be.
+       */
+      await page.selectOption("#filter-condition", { index: 1 });
       await page.fill("#filter-humidity", "60");
       await page.selectOption("#filter-sort", "temperature");
     },
@@ -94,6 +104,7 @@ const SCENES = [
     name: "loading-light",
     viewport: DESKTOP,
     theme: "light",
+    waitForData: false,
     async prepare(page) {
       await page.route("**/api/weather", async (route) => {
         await new Promise((resolve) => setTimeout(resolve, 6000));
@@ -135,6 +146,19 @@ async function main() {
       // Fonts load asynchronously; shooting early captures a fallback-face
       // render that misrepresents the design.
       await page.evaluate(() => document.fonts.ready);
+
+      /*
+       * Wait for real results before touching any control.
+       *
+       * The country and condition dropdowns are populated from the data that
+       * actually loaded, so until the batch resolves they contain nothing but
+       * their placeholder — and any scene that selects an option races the
+       * network. The loading scene opts out, since waiting for data is precisely
+       * what it must not do.
+       */
+      if (scene.waitForData !== false) {
+        await page.waitForSelector("article", { timeout: 20_000 });
+      }
 
       if (scene.act) {
         await scene.act(page);

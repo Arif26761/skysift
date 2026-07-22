@@ -22,25 +22,64 @@ entire application.
 
 | Token         | Light     | Dark      | Use                           |
 | ------------- | --------- | --------- | ----------------------------- |
-| `background`  | `#f6f9ff` | `#0a0e1a` | Page base                     |
-| `surface`     | `#ffffff` | `#111726` | Cards, panels                 |
-| `surface-2`   | `#eef3fc` | `#182036` | Elevated / hover              |
-| `surface-3`   | `#e4ecf9` | `#1f2942` | Pressed / shimmer             |
-| `line`        | `#e2e9f5` | `#232c44` | Hairlines                     |
-| `line-strong` | `#c9d7ee` | `#35415f` | Emphasised borders            |
-| `text`        | `#0f1b2d` | `#eaf0fb` | Primary text                  |
-| `muted`       | `#55606f` | `#9aa6bd` | Secondary text                |
-| `subtle`      | `#7c8798` | `#6e7a92` | Captions, meta                |
-| `primary`     | `#1363df` | `#4d8bff` | Brand, actions                |
-| `accent`      | `#0891b2` | `#22d3ee` | Highlights                    |
-| `ring`        | `#2f6bf0` | `#6ea3ff` | Focus outline                 |
+| `background`  | `#f7f5f0` | `#0d100f` | Page base                     |
+| `surface`     | `#ffffff` | `#151917` | Cards, panels                 |
+| `surface-2`   | `#f0ece2` | `#1d2320` | Elevated / hover              |
+| `surface-3`   | `#e7e2d4` | `#262d29` | Pressed / shimmer             |
+| `line`        | `#e5e0d3` | `#28302c` | Decorative hairlines          |
+| `line-strong` | `#9e9375` | `#5f6d67` | Form-control borders (3:1)    |
+| `text`        | `#1a1713` | `#ecefec` | Primary text                  |
+| `muted`       | `#56514a` | `#a2aba6` | Secondary text                |
+| `subtle`      | `#746d5b` | `#7d867f` | Captions, meta                |
+| `primary`     | `#0f766e` | `#2dd4bf` | Brand, actions                |
+| `accent`      | `#c2410c` | `#fb923c` | The one warm counterweight    |
+| `ring`        | `#0f766e` | `#2dd4bf` | Focus outline                 |
 | `danger`      | `#b42318` | `#fb8b7f` | Destructive, exclusion counts |
 | `warning`     | `#a15c07` | `#f2b23c` | Failed-city rail              |
 
-The light base is a faint blue-white rather than pure `#fff`, so white cards read
-as _raised_ against it without needing heavy shadows. The dark base is deep navy
-rather than neutral grey, so the blue brand hue reads as deliberate instead of a
-stray accent on a monochrome page.
+### Why chart paper, and why teal
+
+**Light is warm off-white, not cool blue-white.** That is the graticule's natural
+companion: synoptic charts and barograph traces are printed on warm paper and
+ruled in fine ink. Adopting that base makes the grid read as _paper_ rather than
+as a texture laid over a website — the decoration and the substrate become one
+idea instead of two. Pure white cards then sit on it as clearly raised, without
+needing heavy shadows.
+
+**Dark is near-neutral graphite with the faintest green shift** — the same
+instrument at night. Deliberately _not_ navy: a blue-cast dark would push the
+entire page into the cold family that the condition language already owns, and
+Rain would stop standing out.
+
+**The primary is deep teal ink, and that is a functional constraint rather than a
+taste call.** The condition language owns the whole cold-blue family — Rain is
+blue, Drizzle is sky, Snow is pale ice. If the interface chrome were _also_ blue,
+then every button, link, focus ring and active state would compete with the data
+for the same meaning, and a blue chip would be genuinely ambiguous: is that a
+filter control, or is it raining? Teal sits adjacent to the cold family without
+belonging to it. **Chrome owns teal; data owns blue; nothing collides.**
+
+### Contrast is measured, not asserted
+
+```bash
+npm run check:contrast
+```
+
+`scripts/check-contrast.mjs` parses the tokens **straight out of `globals.css`**
+— so the audit cannot drift from what ships — and checks 16 foreground/background
+pairs per theme against WCAG AA (4.5:1 text, 3:1 non-text UI).
+
+It earned its place immediately. On the first run against this palette it failed
+`border-strong on surface` at **1.95:1**, which turned out to be a real defect:
+the filter panel's inputs sit on `surface` _with_ a `surface` background, so
+their border is the only thing identifying them as controls — exactly the case
+WCAG 1.4.11 requires 3:1 for. `line-strong` was darkened to `#9e9375` / `#5f6d67`
+and the form controls switched onto it.
+
+That is also why there are two border tokens: `line` stays feather-light for
+decorative hairlines (card edges, dividers, which carry no information), while
+`line-strong` carries the contrast obligation for anything that identifies a
+control.
 
 ### Dark mode is a token swap, not a second design
 
@@ -80,12 +119,24 @@ card grid, the table, the filter dropdown and the legend all read from
 | ------------ | --------- | ---------------- |
 | Clear        | `#f59e0b` | `Sun`            |
 | Clouds       | `#64748b` | `Cloud`          |
-| Rain         | `#1363df` | `CloudRain`      |
+| Rain         | `#2563eb` | `CloudRain`      |
 | Drizzle      | `#38bdf8` | `CloudDrizzle`   |
 | Thunderstorm | `#7c6bff` | `CloudLightning` |
-| Snow         | `#22d3ee` | `Snowflake`      |
+| Snow         | `#93c5fd` | `Snowflake`      |
 | Mist         | `#94a3b8` | `CloudFog`       |
 | _Unknown_    | `#8b95a8` | `CircleHelp`     |
+
+The wet conditions are deliberately arranged as a **single cold ramp**, so the
+grid reads as increasing coldness rather than three unrelated blues:
+
+```
+Rain #2563eb   →   Drizzle #38bdf8   →   Snow #93c5fd
+ deep blue           sky                  pale ice
+```
+
+Snow moved off cyan for a concrete reason: cyan sat too close to the teal chrome
+in dark mode, and _"is that snow, or is that a button?"_ is not a question a
+legend should ever have to answer.
 
 OpenWeatherMap reports ~15 `main` values. Mist / Smoke / Haze / Dust / Fog / Sand
 / Ash read identically to a user, so they collapse into one family — giving each
