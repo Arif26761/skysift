@@ -1,26 +1,324 @@
 @import "tailwindcss";
 
+/*
+ * ---------------------------------------------------------------------------
+ * SkySift design system
+ * ---------------------------------------------------------------------------
+ *
+ * Two ideas govern everything below.
+ *
+ * 1. SEMANTIC TOKENS, NOT RAW COLOUR.
+ *    Components say `bg-surface` and `text-muted`, never `bg-white` or
+ *    `text-slate-500`. A component therefore describes its *role* in the
+ *    hierarchy rather than its appearance, which is what lets one stylesheet
+ *    repaint the entire app.
+ *
+ * 2. DARK MODE IS A TOKEN SWAP, NOT A SECOND DESIGN.
+ *    `:root` and `.dark` assign different values to the same variable names,
+ *    and `@theme inline` makes every generated utility resolve through those
+ *    variables at runtime. The practical result is that component code contains
+ *    almost no `dark:` variants at all — the theme changes underneath it. The
+ *    few that remain are for shadows, which genuinely behave differently in the
+ *    two themes.
+ */
+
+/*
+ * Class-based dark mode rather than Tailwind v4's default `prefers-color-scheme`,
+ * because a user must be able to override the system preference. The toggle
+ * writes `.dark` onto <html>.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* --------------------------------------------------------------------------
+ * Light theme — "chart paper".
+ *
+ * The page base is a warm off-white, not a cool blue-white. That is the
+ * graticule's natural companion: synoptic charts and barograph traces are
+ * printed on warm paper and ruled in fine ink, and adopting that base makes the
+ * grid read as *paper* rather than as a decorative texture laid over a website.
+ * Pure white cards then sit on it as clearly raised, without heavy shadows.
+ * ----------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f5f0;
+  --surface: #ffffff;
+  --surface-2: #f0ece2;
+  --surface-3: #e7e2d4;
+
+  --border: #e5e0d3;
+  --border-strong: #9e9375;
+
+  --text: #1a1713;
+  --text-muted: #56514a;
+  --text-subtle: #746d5b;
+
+  /*
+   * Deep teal ink, not blue — and this is a functional constraint rather than a
+   * taste call.
+   *
+   * The condition language owns the entire cold-blue family: Rain is blue,
+   * Drizzle is sky, Snow is pale ice. If the interface chrome were also blue,
+   * every button, link, focus ring and active state would compete with the data
+   * for the same meaning, and a blue chip would be ambiguous — is that a filter
+   * control, or is it raining? Teal sits adjacent to the cold family without
+   * belonging to it, so chrome and data never collide.
+   */
+  --primary: #0f766e;
+  --primary-hover: #0b5c55;
+  --primary-fg: #ffffff;
+  --primary-tint: rgba(15, 118, 110, 0.1);
+
+  /* Ember. The one warm counterweight, used once per view on the wordmark. */
+  --accent: #c2410c;
+  --ring: #0f766e;
+
+  /* Status hues, verified against --surface by scripts/check-contrast.mjs. */
+  --danger: #b42318;
+  --danger-tint: rgba(180, 35, 24, 0.09);
+  --warning: #a15c07;
+  --warning-tint: rgba(161, 92, 7, 0.1);
+  --success: #067647;
+
+  /* The ruling — warm graphite, as if printed with the paper. */
+  --grid-line: rgba(120, 100, 60, 0.07);
+
+  --shadow-card:
+    0 1px 2px rgba(46, 38, 24, 0.045), 0 8px 24px -12px rgba(46, 38, 24, 0.16);
+  --shadow-raised:
+    0 2px 4px rgba(46, 38, 24, 0.06), 0 16px 32px -16px rgba(46, 38, 24, 0.22);
 }
 
+/* --------------------------------------------------------------------------
+ * Dark theme — "the same instrument at night".
+ *
+ * A near-neutral graphite carrying the faintest green shift, so the teal chrome
+ * reads as belonging to the surface rather than sitting on top of it. Not navy:
+ * a blue-cast dark would push the whole page into the cold family that the
+ * condition language already owns, and Rain would stop standing out.
+ * ----------------------------------------------------------------------- */
+.dark {
+  --background: #0d100f;
+  --surface: #151917;
+  --surface-2: #1d2320;
+  --surface-3: #262d29;
+
+  --border: #28302c;
+  --border-strong: #5f6d67;
+
+  --text: #ecefec;
+  --text-muted: #a2aba6;
+  --text-subtle: #7d867f;
+
+  --primary: #2dd4bf;
+  --primary-hover: #5eead4;
+  --primary-fg: #04211d;
+  --primary-tint: rgba(45, 212, 191, 0.14);
+
+  --accent: #fb923c;
+  --ring: #2dd4bf;
+
+  --danger: #fb8b7f;
+  --danger-tint: rgba(251, 139, 127, 0.13);
+  --warning: #f2b23c;
+  --warning-tint: rgba(242, 178, 60, 0.13);
+  --success: #34d399;
+
+  --grid-line: rgba(150, 220, 200, 0.045);
+
+  /*
+   * Dark surfaces barely register a drop shadow, so elevation is carried by a
+   * hairline top highlight — the way light actually catches a raised edge —
+   * plus a deeper ambient shadow for separation.
+   */
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --shadow-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 36px -18px rgba(0, 0, 0, 0.85);
+}
+
+/*
+ * `@theme inline` re-exports the variables above as Tailwind utilities while
+ * keeping the reference live. `inline` is essential here: without it Tailwind
+ * would bake the light values into the generated CSS and the dark theme would
+ * never take effect.
+ */
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-tint: var(--primary-tint);
+
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
+
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-warning: var(--warning);
+  --color-warning-tint: var(--warning-tint);
+  --color-success: var(--success);
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* Radii: cards soft, controls crisper, chips fully round. */
+  --radius-card: 14px;
+  --radius-control: 9px;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
+  /*
+   * Tells the browser which palette is active, so native UI — scrollbars, form
+   * controls, the autofill highlight — matches the theme instead of staying
+   * stubbornly light.
+   */
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga";
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /*
+   * One global focus ring, so no component can forget one. `:focus-visible`
+   * rather than `:focus` means mouse users are not shown a ring they did not
+   * ask for, while keyboard users always are.
+   */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /*
+   * Motion here is explanatory: cards travel to their new position when the sort
+   * changes, so the reorder is legible rather than a jump cut. For anyone who
+   * has asked their OS to reduce motion that explanation is not worth the cost,
+   * so it is removed globally rather than component by component.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /*
+   * The graticule.
+   *
+   * A near-invisible 32px rule behind the page, the way a meteorological chart
+   * or a plotting sheet is ruled. It is the only decoration in the design, and
+   * it earns its place by supporting the central idea: this is an *instrument*
+   * for reading data, not a consumer weather widget. At ~5% opacity it is felt
+   * rather than seen, and it never competes with content.
+   */
+  .sky-grid {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center top;
+  }
+
+  /* One brand gradient, used once per view, on the wordmark only. */
+  .sky-brand-text {
+    background-image: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /*
+   * Tabular figures for every measurement.
+   *
+   * Proportional digits have different widths, so a temperature ticking from
+   * 9.9 to 10.1 makes the whole row twitch and table columns fail to line up.
+   * `tabular-nums` fixes both, and is the actual reason the design uses a mono
+   * face for readouts rather than because it "looks technical".
+   */
+  .sky-numeric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Skeleton shimmer. Paired with fixed card geometry so nothing shifts. */
+  .sky-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--surface-2);
+  }
+
+  .sky-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--surface-3) 90%, transparent) 50%,
+      transparent 100%
+    );
+    animation: sky-shimmer 1.6s ease-in-out infinite;
+  }
+
+  @keyframes sky-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Result cards enter with a short, purposeful rise. */
+  .sky-enter {
+    animation: sky-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes sky-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
