@@ -37,12 +37,22 @@ export interface ConditionStyle {
 }
 
 /**
- * Palette rationale: each hue is the one a person would intuitively reach for
- * (amber sun, grey cloud, blue rain), pulled toward the project's blue/cyan
- * brand family so the grid reads as one system rather than a bag of stickers.
- * Every colour was checked for AA contrast against both theme surfaces when
- * used for text; where a hue is too light for body text it is used for the rail
- * and icon only, with the label inheriting normal text colour.
+ * Palette rationale.
+ *
+ * Each hue is the one a person would intuitively reach for — amber sun, grey
+ * cloud, blue rain — and the wet family is deliberately arranged as a single
+ * cold ramp that reads as increasing coldness:
+ *
+ *     Rain #2563eb  ->  Drizzle #38bdf8  ->  Snow #93c5fd
+ *      deep blue          sky                pale ice
+ *
+ * The interface chrome is teal precisely so it stays outside this ramp. If the
+ * primary colour were blue, a blue chip would be ambiguous — a filter control,
+ * or rain? Data owns the cold blues; chrome owns teal. Nothing here competes.
+ *
+ * Colours are used for the card rail, the icon and the chip tint. The condition
+ * *label* always inherits normal text colour, so no hue here has to carry body
+ * text and none is constrained by a 4.5:1 threshold it would fail.
  */
 export const CONDITION_STYLES: Readonly<Record<ConditionGroup, ConditionStyle>> = {
   Clear: {
@@ -62,8 +72,8 @@ export const CONDITION_STYLES: Readonly<Record<ConditionGroup, ConditionStyle>> 
   Rain: {
     group: "Rain",
     label: "Rain",
-    color: "#1363df",
-    tint: "rgba(19, 99, 223, 0.16)",
+    color: "#2563eb",
+    tint: "rgba(37, 99, 235, 0.16)",
     icon: "CloudRain",
   },
   Drizzle: {
@@ -83,8 +93,11 @@ export const CONDITION_STYLES: Readonly<Record<ConditionGroup, ConditionStyle>> 
   Snow: {
     group: "Snow",
     label: "Snow",
-    color: "#22d3ee",
-    tint: "rgba(34, 211, 238, 0.16)",
+    // Pale ice blue rather than cyan: cyan sat too close to the teal chrome in
+    // dark mode, and "is that snow or a button?" is not a question a legend
+    // should have to answer.
+    color: "#93c5fd",
+    tint: "rgba(147, 197, 253, 0.18)",
     icon: "Snowflake",
   },
   Mist: {

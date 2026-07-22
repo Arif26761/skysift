@@ -38,6 +38,11 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      # Fails the build if any design token drops below WCAG AA. Accessibility
+      # claims in the README are only worth anything if something enforces them.
+      - name: Contrast audit
+        run: npm run check:contrast
+
       - name: Unit tests
         run: npm test
 
