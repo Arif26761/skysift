@@ -7,7 +7,7 @@
 Fetch current weather for any list of cities, then slice it by country,
 temperature, condition and humidity — and see **exactly what each filter removed.**
 
-[**▶ Live demo**](https://skysift-five.vercel.app) · [Architecture](./docs/ARCHITECTURE.md) · [Design system](./docs/DESIGN-SYSTEM.md)
+[**▶ Live demo**](https://skysift-five.vercel.app) · [Screenshots](#screenshots) · [API](#the-api)
 
 [![CI](https://github.com/Arif26761/skysift/actions/workflows/ci.yml/badge.svg)](https://github.com/Arif26761/skysift/actions/workflows/ci.yml)
 ![tests](https://img.shields.io/badge/tests-107%20passing-0e8a16)
@@ -232,8 +232,42 @@ filters change  →  zero network requests, a synchronous pure function
 That's what lets the _same function_ run in the route handler and in the browser:
 one implementation, one test suite, two runtimes, no drift.
 
-Full reasoning in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and
-[`docs/DESIGN-SYSTEM.md`](./docs/DESIGN-SYSTEM.md).
+### Key decisions
+
+- **Errors are data, not exceptions.** A batch where one city 404s isn't a
+  failure — it's four successes and one explained gap, and an exception can only
+  say "the whole thing died". `WeatherBatch` has no `success` flag, so no caller
+  can branch on one and discard the half that worked.
+- **The provider is a port, not a dependency.** `fetch-weather.ts` depends on
+  `(city, signal) => Promise<CityResult>`, never on OpenWeatherMap. That's what
+  makes the mock adapter, the offline test suite and Demo Mode possible from one
+  abstraction.
+- **The cache is a decorator over that port**, not a feature inside the
+  orchestrator — so caching composes and the batch layer never knows it exists.
+  Only successes are cached: caching a timeout would pin a city broken for ten
+  minutes and make its Retry button a no-op.
+- **`z.coerce.number()` is deliberately avoided.** It turns `""` into `0`, which
+  would silently apply `minTemp: 0` the instant a user clears the field. Empty
+  and absent both have to mean _no constraint_ — a guard that now exists at three
+  layers: the pure filter, the API contract, and the UI inputs.
+- **Three pieces of client state exist** (cities, filters, view). Everything else
+  is derived, which is why the table headers and the sort dropdown cannot
+  disagree — they're two views of one value, not two copies of one fact.
+
+### Design
+
+The interface chrome is **teal**, and that's a functional constraint rather than
+a taste call: the condition language owns the whole cold-blue family (Rain blue,
+Drizzle sky, Snow pale ice). If chrome were also blue, a blue chip would be
+genuinely ambiguous — _filter control, or rain?_ Chrome owns teal, data owns
+blue, nothing collides.
+
+The light theme is warm chart paper rather than cool white, because the faint
+32px graticule behind the page is meant to read as _ruled paper_ — the way a
+synoptic chart is printed — rather than as a texture laid over a website.
+
+Every condition is encoded **three times** (colour + icon + text), which is how
+"don't rely on colour alone" is actually met.
 
 ### Stack
 
