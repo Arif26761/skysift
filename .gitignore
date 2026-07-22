@@ -34,6 +34,11 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Internal design/architecture notes. Kept locally as working material; the
+# public repo ships the README and the screenshots only.
+docs/ARCHITECTURE.md
+docs/DESIGN-SYSTEM.md
+
 # vercel
 .vercel
 
