@@ -1,26 +1,305 @@
 @import "tailwindcss";
 
+/*
+ * ---------------------------------------------------------------------------
+ * SkySift design system
+ * ---------------------------------------------------------------------------
+ *
+ * Two ideas govern everything below.
+ *
+ * 1. SEMANTIC TOKENS, NOT RAW COLOUR.
+ *    Components say `bg-surface` and `text-muted`, never `bg-white` or
+ *    `text-slate-500`. A component therefore describes its *role* in the
+ *    hierarchy rather than its appearance, which is what lets one stylesheet
+ *    repaint the entire app.
+ *
+ * 2. DARK MODE IS A TOKEN SWAP, NOT A SECOND DESIGN.
+ *    `:root` and `.dark` assign different values to the same variable names,
+ *    and `@theme inline` makes every generated utility resolve through those
+ *    variables at runtime. The practical result is that component code contains
+ *    almost no `dark:` variants at all — the theme changes underneath it. The
+ *    few that remain are for shadows, which genuinely behave differently in the
+ *    two themes.
+ */
+
+/*
+ * Class-based dark mode rather than Tailwind v4's default `prefers-color-scheme`,
+ * because a user must be able to override the system preference. The toggle
+ * writes `.dark` onto <html>.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* --------------------------------------------------------------------------
+ * Light theme — the default.
+ * The page base is a very faint blue-white rather than pure #fff, so white
+ * surfaces read as raised cards against it without needing heavy shadows.
+ * ----------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f9ff;
+  --surface: #ffffff;
+  --surface-2: #eef3fc;
+  --surface-3: #e4ecf9;
+
+  --border: #e2e9f5;
+  --border-strong: #c9d7ee;
+
+  --text: #0f1b2d;
+  --text-muted: #55606f;
+  --text-subtle: #7c8798;
+
+  --primary: #1363df;
+  --primary-hover: #0f52ba;
+  --primary-fg: #ffffff;
+  --primary-tint: rgba(19, 99, 223, 0.1);
+
+  --accent: #0891b2;
+  --ring: #2f6bf0;
+
+  /* Status hues, chosen to clear AA as text on --surface. */
+  --danger: #b42318;
+  --danger-tint: rgba(180, 35, 24, 0.09);
+  --warning: #a15c07;
+  --warning-tint: rgba(161, 92, 7, 0.1);
+  --success: #067647;
+
+  /* The graticule — see the .sky-grid utility below. */
+  --grid-line: rgba(19, 99, 223, 0.055);
+
+  --shadow-card:
+    0 1px 2px rgba(15, 27, 45, 0.04), 0 8px 24px -12px rgba(15, 27, 45, 0.14);
+  --shadow-raised:
+    0 2px 4px rgba(15, 27, 45, 0.06), 0 16px 32px -16px rgba(15, 27, 45, 0.2);
 }
 
+/* --------------------------------------------------------------------------
+ * Dark theme.
+ * Deep navy rather than neutral grey, so the blue brand hue still reads as
+ * deliberate rather than as a stray accent on a monochrome page.
+ * ----------------------------------------------------------------------- */
+.dark {
+  --background: #0a0e1a;
+  --surface: #111726;
+  --surface-2: #182036;
+  --surface-3: #1f2942;
+
+  --border: #232c44;
+  --border-strong: #35415f;
+
+  --text: #eaf0fb;
+  --text-muted: #9aa6bd;
+  --text-subtle: #6e7a92;
+
+  --primary: #4d8bff;
+  --primary-hover: #6ea3ff;
+  --primary-fg: #06101f;
+  --primary-tint: rgba(77, 139, 255, 0.14);
+
+  --accent: #22d3ee;
+  --ring: #6ea3ff;
+
+  --danger: #fb8b7f;
+  --danger-tint: rgba(251, 139, 127, 0.13);
+  --warning: #f2b23c;
+  --warning-tint: rgba(242, 178, 60, 0.13);
+  --success: #34d399;
+
+  --grid-line: rgba(122, 168, 255, 0.05);
+
+  /*
+   * Dark surfaces barely register a drop shadow, so elevation is carried by a
+   * hairline top highlight — the way light actually catches a raised edge —
+   * plus a deeper ambient shadow for separation.
+   */
+  --shadow-card:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --shadow-raised:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 36px -18px rgba(0, 0, 0, 0.85);
+}
+
+/*
+ * `@theme inline` re-exports the variables above as Tailwind utilities while
+ * keeping the reference live. `inline` is essential here: without it Tailwind
+ * would bake the light values into the generated CSS and the dark theme would
+ * never take effect.
+ */
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-tint: var(--primary-tint);
+
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
+
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-warning: var(--warning);
+  --color-warning-tint: var(--warning-tint);
+  --color-success: var(--success);
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* Radii: cards soft, controls crisper, chips fully round. */
+  --radius-card: 14px;
+  --radius-control: 9px;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
+  /*
+   * Tells the browser which palette is active, so native UI — scrollbars, form
+   * controls, the autofill highlight — matches the theme instead of staying
+   * stubbornly light.
+   */
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga";
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /*
+   * One global focus ring, so no component can forget one. `:focus-visible`
+   * rather than `:focus` means mouse users are not shown a ring they did not
+   * ask for, while keyboard users always are.
+   */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /*
+   * Motion here is explanatory: cards travel to their new position when the sort
+   * changes, so the reorder is legible rather than a jump cut. For anyone who
+   * has asked their OS to reduce motion that explanation is not worth the cost,
+   * so it is removed globally rather than component by component.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /*
+   * The graticule.
+   *
+   * A near-invisible 32px rule behind the page, the way a meteorological chart
+   * or a plotting sheet is ruled. It is the only decoration in the design, and
+   * it earns its place by supporting the central idea: this is an *instrument*
+   * for reading data, not a consumer weather widget. At ~5% opacity it is felt
+   * rather than seen, and it never competes with content.
+   */
+  .sky-grid {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center top;
+  }
+
+  /* One brand gradient, used once per view, on the wordmark only. */
+  .sky-brand-text {
+    background-image: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /*
+   * Tabular figures for every measurement.
+   *
+   * Proportional digits have different widths, so a temperature ticking from
+   * 9.9 to 10.1 makes the whole row twitch and table columns fail to line up.
+   * `tabular-nums` fixes both, and is the actual reason the design uses a mono
+   * face for readouts rather than because it "looks technical".
+   */
+  .sky-numeric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Skeleton shimmer. Paired with fixed card geometry so nothing shifts. */
+  .sky-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--surface-2);
+  }
+
+  .sky-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--surface-3) 90%, transparent) 50%,
+      transparent 100%
+    );
+    animation: sky-shimmer 1.6s ease-in-out infinite;
+  }
+
+  @keyframes sky-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Result cards enter with a short, purposeful rise. */
+  .sky-enter {
+    animation: sky-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes sky-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
