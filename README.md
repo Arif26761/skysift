@@ -5,7 +5,7 @@
 **Sift the sky.** A weather data service with a filtering instrument on top.
 
 Fetches current weather for any list of cities, then lets you slice that data by country,
-temperature, condition and humidity — and *shows you what each filter removed*.
+temperature, condition and humidity — and _shows you what each filter removed_.
 
 [![CI](https://github.com/Arif26761/skysift/actions/workflows/ci.yml/badge.svg)](https://github.com/Arif26761/skysift/actions/workflows/ci.yml)
 
@@ -20,23 +20,23 @@ temperature, condition and humidity — and *shows you what each filter removed*
 ## What this is
 
 Most filter UIs have the same flaw: when you narrow the data and the list empties, you can't
-tell *which control did it*. SkySift's signature feature is the **Filter Ledger** — a live bar
+tell _which control did it_. SkySift's signature feature is the **Filter Ledger** — a live bar
 showing `Showing 4 of 9`, with one chip per active filter annotated with how many records
 that specific filter excluded. When results hit zero, it names the cause and offers to relax
 that one filter.
 
 ## Tech stack
 
-| Layer | Choice |
-| --- | --- |
-| Framework | Next.js 16 (App Router) |
-| UI | React 19 |
-| Language | TypeScript 5 (`strict`, `noUncheckedIndexedAccess`) |
-| Styling | Tailwind CSS v4 (CSS-first `@theme` tokens) |
-| Validation | Zod (runtime parsing at the API boundary) |
-| Testing | Vitest + Testing Library |
-| Icons | lucide-react |
-| Hosting | Vercel |
+| Layer      | Choice                                              |
+| ---------- | --------------------------------------------------- |
+| Framework  | Next.js 16 (App Router)                             |
+| UI         | React 19                                            |
+| Language   | TypeScript 5 (`strict`, `noUncheckedIndexedAccess`) |
+| Styling    | Tailwind CSS v4 (CSS-first `@theme` tokens)         |
+| Validation | Zod (runtime parsing at the API boundary)           |
+| Testing    | Vitest + Testing Library                            |
+| Icons      | lucide-react                                        |
+| Hosting    | Vercel                                              |
 
 ## Quick start
 
@@ -66,15 +66,15 @@ directly from React.
 
 ## Scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the dev server |
-| `npm run build` | Production build |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint |
-| `npm test` | Run the unit test suite |
-| `npm run test:watch` | Vitest in watch mode |
-| `npm run format` | Prettier write |
+| Command              | Description             |
+| -------------------- | ----------------------- |
+| `npm run dev`        | Start the dev server    |
+| `npm run build`      | Production build        |
+| `npm run typecheck`  | `tsc --noEmit`          |
+| `npm run lint`       | ESLint                  |
+| `npm test`           | Run the unit test suite |
+| `npm run test:watch` | Vitest in watch mode    |
+| `npm run format`     | Prettier write          |
 
 ## License
 
