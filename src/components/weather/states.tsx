@@ -244,7 +244,7 @@ export function DemoBanner() {
       className="border-line bg-surface-2 flex items-start gap-2.5 rounded-[14px] border px-4 py-3"
       role="status"
     >
-      <FlaskConical className="text-accent mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <FlaskConical className="text-primary-text mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <p className="text-muted text-xs leading-relaxed">
         <span className="text-text font-semibold">Demo mode.</span> No OpenWeatherMap API
         key is configured, so these are realistic fixture readings rather than live data.

@@ -10,7 +10,7 @@ import type { ConditionGroup, SortField, WeatherFilters } from "@/lib/weather/ty
 
 import { CityInput } from "./city-input";
 import { ConditionLegend } from "./condition-legend";
-import { FilterLedger } from "./filter-ledger";
+import { FilterFunnel } from "./filter-funnel";
 import { FilterPanel } from "./filter-panel";
 import {
   DemoBanner,
@@ -116,6 +116,22 @@ export function Workbench() {
     return { min: Math.min(...temps), max: Math.max(...temps) };
   }, [visible]);
 
+  /*
+   * Tick positions for the filter sliders, taken from *all* loaded records
+   * rather than the visible ones. Deriving them from the filtered set would make
+   * the ticks vanish as the user narrows the range — hiding exactly the evidence
+   * they need to decide where to drag next.
+   */
+  const temperatureMarks = useMemo(
+    () => records.map((record) => record.temperature),
+    [records],
+  );
+
+  const humidityMarks = useMemo(
+    () => records.map((record) => record.humidity),
+    [records],
+  );
+
   const isLoading = status === "loading";
   const showEmpty = !isLoading && requestError === null && visible.length === 0;
 
@@ -174,6 +190,8 @@ export function Workbench() {
                 onReset={resetFilters}
                 countries={countries}
                 conditions={conditions}
+                temperatureMarks={temperatureMarks}
+                humidityMarks={humidityMarks}
                 activeCount={ledger.active.length}
               />
             </div>
@@ -189,7 +207,7 @@ export function Workbench() {
 
         <section id="results" aria-label="Results" className="min-w-0">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <FilterLedger ledger={ledger} onClear={clearFilter} onReset={resetFilters} />
+            <FilterFunnel ledger={ledger} onClear={clearFilter} />
             <ViewToggle view={view} onChange={setView} />
           </div>
 
