@@ -10,7 +10,7 @@ temperature, condition and humidity — and see **exactly what each filter remov
 [**▶ Live demo**](https://skysift-five.vercel.app) · [Screenshots](#screenshots) · [API](#the-api)
 
 [![CI](https://github.com/Arif26761/skysift/actions/workflows/ci.yml/badge.svg)](https://github.com/Arif26761/skysift/actions/workflows/ci.yml)
-![tests](https://img.shields.io/badge/tests-123%20passing-4d7c0f)
+![tests](https://img.shields.io/badge/tests-131%20passing-4d7c0f)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-4d7c0f)
 
 </div>
@@ -71,6 +71,23 @@ that one omitted. **This is only affordable because the filter function is pure*
 architectural discipline Part 2 asked for unlocked a feature the brief never
 requested.
 
+### The plot view
+
+Cards and the table both answer _"what survived?"_. A third view answers the
+question the funnel raises but cannot place: **where did the excluded cities go?**
+
+![Plot view — excluded cities drawn in place](./docs/screenshots/plot-dark.png)
+
+Filtered-out cities aren't removed — they're drawn **hollow, in position, and
+still labelled**. Narrowing a range visibly pushes cities outside the band
+instead of making them vanish, so you can see a filter is about to cut off a
+cluster before it does. Same honesty principle as the funnel, expressed spatially
+rather than numerically.
+
+It's hand-drawn SVG — one scatter with two linear scales, where a charting
+library would have added tens of kilobytes and a theming layer to restyle, to
+draw about forty elements.
+
 ### The design language
 
 The interface chrome is **chartreuse**, and that's a functional constraint rather
@@ -105,7 +122,7 @@ asks for 3:1 on a component's boundary, not just its text.
 | Loading / empty / inline error states                         | [`states.tsx`](./src/components/weather/states.tsx)                                                                                |
 | Responsive at ~375px → desktop                                | [screenshots below](#screenshots)                                                                                                  |
 | Consistent visual language for conditions                     | [`conditions.ts`](./src/lib/weather/conditions.ts)                                                                                 |
-| A few unit tests                                              | **123 tests**, 9 files                                                                                                             |
+| A few unit tests                                              | **131 tests**, 10 files                                                                                                            |
 | README with setup + screenshots                               | this file                                                                                                                          |
 | Live demo _(optional plus)_                                   | [skysift-five.vercel.app](https://skysift-five.vercel.app)                                                                         |
 
@@ -341,6 +358,10 @@ Every condition is encoded **three times** (colour + icon + text), which is how
 | ------------------------------------------ | -------------------------------------- |
 | ![](./docs/screenshots/overview-light.png) | ![](./docs/screenshots/table-dark.png) |
 
+| Plot view — excluded cities in place  | Empty state — names the culprit        |
+| ------------------------------------- | -------------------------------------- |
+| ![](./docs/screenshots/plot-dark.png) | ![](./docs/screenshots/empty-dark.png) |
+
 | Inline per-city errors                   | Loading skeletons                         |
 | ---------------------------------------- | ----------------------------------------- |
 | ![](./docs/screenshots/errors-light.png) | ![](./docs/screenshots/loading-light.png) |
@@ -350,7 +371,7 @@ Every condition is encoded **three times** (colour + icon + text), which is how
 | <img src="./docs/screenshots/mobile-light.png" width="280"> | <img src="./docs/screenshots/mobile-dark.png" width="280"> |
 
 Screenshots are **generated, not hand-cropped** — `npm run screenshots` drives
-headless Chromium through nine scenes (including states that are otherwise
+headless Chromium through ten scenes (including states that are otherwise
 uncatchable, like the loading skeleton, captured by stalling the API through a
 route handler). They can't rot.
 
@@ -374,7 +395,7 @@ route handler). They can't rot.
 
 ## Testing
 
-**123 tests across 9 files.** CI runs typecheck → lint → format → test → build on
+**131 tests across 10 files.** CI runs typecheck → lint → format → test → build on
 every push and PR.
 
 | Area                      | Covers                                                                                                                                                 |
@@ -388,6 +409,7 @@ every push and PR.
 | `city-input.test.tsx`     | Enter/comma commit, whitespace collapsing, duplicate rejection, Backspace, per-chip accessible names                                                   |
 | `filter-funnel.test.tsx`  | Exclusion counts, `−0` rendering, per-stage clearing, range collapsing, consequence-phrased labels, `aria-live`, keyboard operation, blame-bar scaling |
 | `range-slider.test.tsx`   | The edge-means-`undefined` contract in both directions, thumb clamping (which caught a real swap bug), tick rendering, `aria-valuetext`                |
+| `plot-view.test.tsx`      | Excluded points still plotted and still labelled, hollow vs filled, paint order, label de-collision, the zero-width temperature domain                 |
 
 The core needs **no mocks at all** — pass an array, assert on an array. That's the
 dividend of keeping it pure.

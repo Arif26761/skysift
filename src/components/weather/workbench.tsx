@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, SlidersHorizontal, Table2 } from "lucide-react";
+import { LayoutGrid, ScatterChart, SlidersHorizontal, Table2 } from "lucide-react";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
 import { buildFilterLedger, type FilterKey } from "@/lib/weather/filter-insights";
@@ -19,13 +19,14 @@ import {
   RequestErrorState,
   SkeletonGrid,
 } from "./states";
+import { PlotView } from "./plot-view";
 import { WeatherCard } from "./weather-card";
 import { WeatherTable } from "./weather-table";
 
 /** The example input from the assessment brief, so the app is useful on first load. */
 const DEFAULT_CITIES = ["Dhaka", "Chittagong", "London", "Tokyo", "New York"] as const;
 
-type ViewMode = "cards" | "table";
+type ViewMode = "cards" | "table" | "plot";
 
 /** Matches the `lg:` breakpoint the two-column layout switches on. */
 const DESKTOP_QUERY = "(min-width: 1024px)";
@@ -278,6 +279,12 @@ export function Workbench() {
                     <WeatherCard key={record.city} record={record} domain={domain} />
                   ))}
                 </div>
+              ) : view === "plot" ? (
+                /*
+                 * The plot receives *all* records, not just the visible ones —
+                 * drawing what a filter excluded is the entire point of it.
+                 */
+                <PlotView records={records} visible={visible} />
               ) : (
                 <WeatherTable
                   records={visible}
@@ -335,6 +342,7 @@ function ViewToggle({
         [
           { value: "cards", icon: LayoutGrid, label: "Card view" },
           { value: "table", icon: Table2, label: "Table view" },
+          { value: "plot", icon: ScatterChart, label: "Plot view" },
         ] as const
       ).map(({ value, icon: Icon, label }) => (
         <button
