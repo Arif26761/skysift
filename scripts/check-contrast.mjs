@@ -102,6 +102,13 @@ const CHECKS = [
   ["success", "surface", AA_NORMAL, "success text"],
   ["primary-fg", "primary", AA_NORMAL, "label on a primary fill"],
   ["primary-edge", "surface", AA_UI, "border defining a chartreuse fill's edge"],
+  /*
+   * Gradient text is still text. Both ends of the wordmark ramp are checked,
+   * because a gradient that starts legible and ends invisible passes any audit
+   * that only samples one stop.
+   */
+  ["brand-from", "background", AA_NORMAL, "wordmark gradient, start of ramp"],
+  ["brand-to", "background", AA_NORMAL, "wordmark gradient, end of ramp"],
   ["ring", "background", AA_UI, "focus ring against the page"],
   ["ring", "surface", AA_UI, "focus ring against a card"],
   ["border-strong", "surface", AA_UI, "emphasised control borders"],

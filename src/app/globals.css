@@ -83,6 +83,13 @@
    */
   --primary-edge: #4d7c0f;
 
+  /*
+   * Wordmark gradient endpoints. Chartreuse deepening into olive-ink, so both
+   * ends of the ramp clear AA on the light ground — see .sky-brand-text.
+   */
+  --brand-from: #4d7c0f;
+  --brand-to: #223d06;
+
   --ring: #4d7c0f;
 
   /* Status hues, verified against --surface by scripts/check-contrast.mjs. */
@@ -134,6 +141,10 @@
   --primary-tint: rgba(190, 242, 100, 0.14);
   /* Collapses to the fill: on ink, chartreuse already clears 3:1 unaided. */
   --primary-edge: #bef264;
+
+  /* On ink the ramp can stay bright at both ends and still clear AA. */
+  --brand-from: #bef264;
+  --brand-to: #ecfccb;
 
   --ring: #bef264;
 
@@ -288,8 +299,18 @@
    * fill there — `--primary-hover` stays distinct from `--primary` in both
    * themes, so the sheen survives the theme swap.)
    */
+  /*
+   * The wordmark and the one highlighted word in the hero.
+   *
+   * This gradient must run between --brand-from and --brand-to, never between
+   * --primary and --primary-hover. Both of those are *fill* colours: on the
+   * light ground they measure around 1.5:1, so a wordmark painted with them is
+   * barely legible even though it looks fine on the ink theme. Gradient text is
+   * still text, and the same AA floor applies to it — the brand tokens are the
+   * per-theme pair that clears it at both ends of the ramp.
+   */
   .sky-brand-text {
-    background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    background-image: linear-gradient(135deg, var(--brand-from) 0%, var(--brand-to) 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;

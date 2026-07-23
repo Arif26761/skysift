@@ -91,7 +91,19 @@ export function FilterFunnel({ ledger, onClear, onReset }: FilterFunnelProps) {
             {active.map((entry) => (
               <li key={entry.key} className="flex items-center gap-x-1.5">
                 <Chevron />
-                <Stage entry={entry} worst={worst} onClear={onClear} />
+                <Stage
+                  entry={entry}
+                  worst={worst}
+                  /*
+                   * The bar is a comparison device, so it needs something to
+                   * compare against. With a single active filter it is always
+                   * the worst offender and always renders full width, which
+                   * carries no information and reads as a stray underline on
+                   * the chip. Below two filters it is simply not drawn.
+                   */
+                  showBlame={active.length > 1}
+                  onClear={onClear}
+                />
               </li>
             ))}
           </ul>
@@ -162,10 +174,12 @@ function Endpoint({
 function Stage({
   entry,
   worst,
+  showBlame,
   onClear,
 }: {
   entry: Ledger["active"][number];
   worst: number;
+  showBlame: boolean;
   onClear: (key: FilterKey) => void;
 }) {
   const { key, label, excluded } = entry;
@@ -212,11 +226,13 @@ function Stage({
        * others — the comparison is the information. Reduced-motion users get the
        * width without the travel, handled globally in globals.css.
        */}
-      <span
-        aria-hidden="true"
-        className="bg-danger/70 absolute bottom-0 left-0 h-0.5 rounded-full transition-[width] duration-300 ease-out"
-        style={{ width: `${blame}%` }}
-      />
+      {showBlame && (
+        <span
+          aria-hidden="true"
+          className="bg-danger/70 absolute bottom-0 left-0 h-0.5 rounded-full transition-[width] duration-300 ease-out"
+          style={{ width: `${blame}%` }}
+        />
+      )}
     </button>
   );
 }
