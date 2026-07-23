@@ -87,6 +87,18 @@ const SCENES = [
   },
 
   {
+    // The plot: excluded cities drawn hollow, in place, still labelled — so a
+    // filter's cost is visible rather than inferred.
+    name: "plot-dark",
+    viewport: DESKTOP,
+    theme: "dark",
+    async act(page) {
+      await page.click('button[aria-label="Plot view"]');
+      await setRange(page.locator("#filter-humidity"), 70);
+    },
+  },
+
+  {
     // Empty results, showing the culprit callout rather than a dead end.
     name: "empty-dark",
     viewport: DESKTOP,
