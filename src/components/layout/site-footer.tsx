@@ -2,9 +2,18 @@
 // generic code glyph rather than pulling in a second icon package for one logo.
 import { CodeXml } from "lucide-react";
 
+/**
+ * The page's terminal zone.
+ *
+ * It carries its own surface rather than inheriting the page background. With
+ * only a border-top it read as "page, plus a line" — the background ran straight
+ * through it and the footer never resolved as a place the document ends. A
+ * distinct plane costs one token and does the job that the hairline alone could
+ * not.
+ */
 export function SiteFooter() {
   return (
-    <footer className="border-line mt-auto border-t">
+    <footer className="border-line bg-surface mt-auto border-t">
       <div className="text-subtle mx-auto flex w-full max-w-[1600px] flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <p>
           Built by{" "}
