@@ -56,6 +56,32 @@ function useIsDesktop(): boolean {
 }
 
 /**
+ * Whether the filter panel is expanded, given the viewport and any explicit
+ * toggle the user has made.
+ *
+ * **Desktop ignores the override entirely, and that is the whole point.** The
+ * panel's `<summary>` is `lg:hidden` — with its own column there is nothing to
+ * disclose — so a collapsed panel on a wide screen has no control that can
+ * reopen it. Letting a mobile toggle survive a resize therefore did not merely
+ * look wrong, it made the filters unreachable.
+ *
+ * The override is scoped to the narrow layout, where a visible summary exists to
+ * undo it. On mobile the default is collapsed so the results own the first
+ * screenful; toggling wins from there, and still wins after a round trip through
+ * a wide viewport and back.
+ *
+ * Extracted from the component so this rule can be tested directly, without
+ * standing up a DOM and stubbing `matchMedia`.
+ */
+export function resolveFiltersOpen(
+  isDesktop: boolean,
+  override: boolean | null,
+): boolean {
+  if (isDesktop) return true;
+  return override ?? false;
+}
+
+/**
  * The single owner of application state.
  *
  * Three pieces of state live here and nowhere else: the city list, the filters,
@@ -81,13 +107,9 @@ export function Workbench() {
   const [view, setView] = useState<ViewMode>("cards");
 
   /*
-   * Whether the filter panel is expanded.
-   *
-   * The viewport decides the *default* — at 375px the results, not the controls,
-   * must own the first screenful — and any explicit toggle by the user wins from
-   * then on. Keeping the override as `null` rather than seeding it with the
-   * current breakpoint means a user who never touches the disclosure keeps
-   * getting the right default when they rotate or resize.
+   * Whether the filter panel is expanded. See `resolveFiltersOpen` for the rule:
+   * the override applies to the narrow layout only, because that is the only
+   * layout with a visible summary to undo it with.
    *
    * The media query is read through `useSyncExternalStore` rather than an effect
    * that calls `setState`: the breakpoint is external state that React should
@@ -95,7 +117,7 @@ export function Workbench() {
    */
   const isDesktop = useIsDesktop();
   const [openOverride, setOpenOverride] = useState<boolean | null>(null);
-  const filtersOpen = openOverride ?? isDesktop;
+  const filtersOpen = resolveFiltersOpen(isDesktop, openOverride);
 
   const { status, records, errors, meta, requestError, refetch } = useWeather(cities);
 
@@ -223,7 +245,19 @@ export function Workbench() {
           <details
             className="border-line bg-surface shadow-card group rounded-[16px] border p-4 lg:open:p-4"
             open={filtersOpen}
-            onToggle={(event) => setOpenOverride(event.currentTarget.open)}
+            /*
+             * Only record a toggle that happened in the narrow layout.
+             *
+             * Crossing the breakpoint changes the `open` attribute, and the
+             * browser fires a native `toggle` for that — so without this guard,
+             * widening the window would silently rewrite the user's mobile
+             * preference to "open" and they would find the panel expanded when
+             * they came back. The event has no field distinguishing a user
+             * click from a programmatic change, so the layout has to.
+             */
+            onToggle={(event) => {
+              if (!isDesktop) setOpenOverride(event.currentTarget.open);
+            }}
           >
             <summary className="text-text flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold lg:hidden">
               <span className="inline-flex items-center gap-2">
