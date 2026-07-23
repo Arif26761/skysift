@@ -17,8 +17,13 @@ import { CodeXml } from "lucide-react";
  * deliberately partial — at full opacity there is nothing left to blur and the
  * filter becomes a no-op.
  *
- * Matches the header's treatment, so the document is bracketed by two panes of
- * the same material.
+ * The header uses the same blur and a similar opacity but tints with
+ * `--background` rather than `--surface`, because the two have opposite jobs: a
+ * header is on screen at every scroll position and should recede, while a footer
+ * is reached once and should read as the end of the document. At these opacities
+ * the two tints resolve to almost the same colour, so the distinction is more
+ * about intent than appearance — but the intent is what tells you which token to
+ * reach for when either one changes.
  */
 export function SiteFooter() {
   return (
