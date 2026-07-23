@@ -1,13 +1,19 @@
 "use client";
 
-import { ChevronRight, RotateCcw, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 
 import type { FilterKey, FilterLedger as Ledger } from "@/lib/weather/filter-insights";
 
+/**
+ * No `onReset` here on purpose. The funnel's stages each clear one filter, and
+ * the global reset lives with the controls in the filter panel — putting a
+ * second "Reset all" in this row duplicated the same affordance in the same
+ * horizontal band. When the result set is empty the empty state offers its own
+ * reset, which is the case where a user actually needs one urgently.
+ */
 interface FilterFunnelProps {
   readonly ledger: Ledger;
   readonly onClear: (key: FilterKey) => void;
-  readonly onReset: () => void;
 }
 
 /**
@@ -49,7 +55,7 @@ interface FilterFunnelProps {
  * question a user is asking. The endpoints (`total`, `shown`) are exact counts
  * and are stated as numbers, never inferred from a width.
  */
-export function FilterFunnel({ ledger, onClear, onReset }: FilterFunnelProps) {
+export function FilterFunnel({ ledger, onClear }: FilterFunnelProps) {
   const { total, shown, active } = ledger;
 
   /*
@@ -110,15 +116,6 @@ export function FilterFunnel({ ledger, onClear, onReset }: FilterFunnelProps) {
 
           <Chevron />
           <Endpoint value={shown} label="shown" terminal />
-
-          <button
-            type="button"
-            onClick={onReset}
-            className="text-subtle hover:text-primary-text ml-1 inline-flex items-center gap-1 text-xs font-medium transition-colors"
-          >
-            <RotateCcw className="h-3 w-3" aria-hidden="true" />
-            Reset all
-          </button>
         </div>
       )}
     </div>

@@ -35,20 +35,13 @@ const DATA = [
 
 function renderFunnel(
   filters: Parameters<typeof buildFilterLedger>[1],
-  overrides: { onClear?: () => void; onReset?: () => void } = {},
+  overrides: { onClear?: () => void } = {},
 ) {
   const onClear = overrides.onClear ?? vi.fn();
-  const onReset = overrides.onReset ?? vi.fn();
 
-  render(
-    <FilterFunnel
-      ledger={buildFilterLedger(DATA, filters)}
-      onClear={onClear}
-      onReset={onReset}
-    />,
-  );
+  render(<FilterFunnel ledger={buildFilterLedger(DATA, filters)} onClear={onClear} />);
 
-  return { onClear, onReset };
+  return { onClear };
 }
 
 describe("FilterFunnel", () => {
@@ -133,13 +126,15 @@ describe("FilterFunnel", () => {
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
-  it("resets everything when Reset all is used", async () => {
-    const user = userEvent.setup();
-    const { onReset } = renderFunnel({ country: "BD" });
+  it("offers no global reset — that affordance lives with the controls", () => {
+    // A second "Reset all" in this row duplicated the panel's, in the same
+    // horizontal band. The empty state still offers one, which is the case
+    // where a user actually needs it urgently.
+    renderFunnel({ country: "BD" });
 
-    await user.click(screen.getByRole("button", { name: /reset all/i }));
-
-    expect(onReset).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole("button", { name: /reset all/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("collapses a temperature range into a single stage", () => {
@@ -178,7 +173,6 @@ describe("FilterFunnel", () => {
       <FilterFunnel
         ledger={buildFilterLedger(DATA, { country: "BD", minHumidity: 80 })}
         onClear={vi.fn()}
-        onReset={vi.fn()}
       />,
     );
 

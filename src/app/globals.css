@@ -330,6 +330,71 @@
     letter-spacing: -0.02em;
   }
 
+  /*
+   * Range slider thumbs.
+   *
+   * The dual-thumb control is built from two real <input type="range"> elements
+   * stacked on one track, rather than from divs and pointer handlers. That buys
+   * keyboard support, touch behaviour, the correct ARIA role and every platform
+   * affordance for free — hand-rolling those is where custom sliders usually
+   * become unusable with a keyboard or a screen reader.
+   *
+   * The cost of stacking them is that the upper input would swallow every click
+   * meant for the lower one. So the inputs themselves are click-through and only
+   * the thumbs accept pointer events, which is what lets two overlapping tracks
+   * behave like one control.
+   */
+  .sky-range {
+    position: absolute;
+    inset-inline: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: none;
+  }
+
+  .sky-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: auto;
+    height: 18px;
+    width: 18px;
+    border-radius: 9999px;
+    background-color: var(--primary);
+    border: 2px solid var(--primary-edge);
+    cursor: grab;
+  }
+
+  .sky-range::-moz-range-thumb {
+    pointer-events: auto;
+    height: 18px;
+    width: 18px;
+    border-radius: 9999px;
+    background-color: var(--primary);
+    border: 2px solid var(--primary-edge);
+    cursor: grab;
+  }
+
+  /*
+   * The global :focus-visible ring would outline the full-width input, drawing a
+   * box around the whole track instead of around the thing the user is moving.
+   * It is suppressed on the element and reapplied to the thumb.
+   */
+  .sky-range:focus {
+    outline: none;
+  }
+
+  .sky-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--background), 0 0 0 5px var(--ring);
+  }
+
+  .sky-range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--background), 0 0 0 5px var(--ring);
+  }
+
   /* Skeleton shimmer. Paired with fixed card geometry so nothing shifts. */
   .sky-shimmer {
     position: relative;
