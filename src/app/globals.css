@@ -117,8 +117,9 @@
    * approach — reads as a grey halo rather than as light, which is the tell of a
    * dated card. Both stay low-opacity so the page keeps its paper quality.
    */
-  --shadow-card: 0 1px 2px rgba(20, 22, 14, 0.04), 0 4px 12px -4px rgba(20, 22, 14, 0.07);
-  --shadow-raised:
+  --elevation-card:
+    0 1px 2px rgba(20, 22, 14, 0.04), 0 4px 12px -4px rgba(20, 22, 14, 0.07);
+  --elevation-raised:
     0 2px 6px rgba(20, 22, 14, 0.06), 0 14px 30px -10px rgba(20, 22, 14, 0.13);
 }
 
@@ -184,9 +185,9 @@
    * hairline top highlight — the way light actually catches a raised edge —
    * plus a deeper ambient shadow for separation.
    */
-  --shadow-card:
+  --elevation-card:
     inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
-  --shadow-raised:
+  --elevation-raised:
     inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 36px -18px rgba(0, 0, 0, 0.85);
 }
 
@@ -231,6 +232,23 @@
   /* Radii: cards soft, controls crisper, chips fully round. */
   --radius-card: 16px;
   --radius-control: 10px;
+
+  /*
+   * Elevation. These MUST be re-exported here to exist as utilities.
+   *
+   * Defining `--shadow-card` in `:root` alone does not create a `shadow-card`
+   * class — Tailwind only generates utilities for variables declared inside
+   * `@theme`. The two were previously defined in `:root` only, so every
+   * `shadow-card` and `hover:shadow-raised` in the codebase silently resolved to
+   * nothing and card separation came entirely from the borders. Nothing errored;
+   * the classes were simply never emitted.
+   *
+   * The raw values are named `--elevation-*` so that these theme entries can
+   * carry the `--shadow-*` names Tailwind's namespace requires without a
+   * variable referring to itself.
+   */
+  --shadow-card: var(--elevation-card);
+  --shadow-raised: var(--elevation-raised);
 }
 
 @layer base {
