@@ -299,10 +299,15 @@
    * The graticule.
    *
    * A near-invisible 32px rule behind the page, the way a meteorological chart
-   * or a plotting sheet is ruled. It is the only decoration in the design, and
-   * it earns its place by supporting the central idea: this is an *instrument*
-   * for reading data, not a consumer weather widget. At ~5% opacity it is felt
-   * rather than seen, and it never competes with content.
+   * or a plotting sheet is ruled. It supports the central idea: this is an
+   * *instrument* for reading data, not a consumer weather widget. At ~5% opacity
+   * it is felt rather than seen, and it never competes with content.
+   *
+   * It runs the full height of the document, including behind the footer. That
+   * is intentional now rather than incidental: the footer is frosted glass, so
+   * the ruling blurs beneath it and the footer reads as a pane floating over the
+   * sheet. A footer with an opaque surface would have cut the paper off square
+   * and lost that.
    */
   .sky-grid {
     background-image:

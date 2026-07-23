@@ -57,11 +57,18 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // The theme colour follows the active palette, so mobile browser chrome
-  // matches the page instead of framing a dark UI in a white bar.
+  /*
+   * The theme colour follows the active palette, so mobile browser chrome
+   * matches the page instead of framing a dark UI in a white bar.
+   *
+   * These must stay in step with `--background` in globals.css by hand — a meta
+   * tag cannot read a CSS custom property. They had drifted: both values were
+   * still the blue-tinted ones from the original design baseline, two palettes
+   * ago, so a phone drew a pale blue bar above a warm-neutral page.
+   */
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f9ff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0e1a" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f3" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0b08" },
   ],
 };
 

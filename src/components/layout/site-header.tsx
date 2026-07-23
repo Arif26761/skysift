@@ -8,7 +8,8 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
  *
  * Sticky, translucent and hairline-bordered rather than a solid bar: the
  * graticule behind it stays faintly visible as the page scrolls, which keeps the
- * "instrument panel" reading rather than "website with a nav".
+ * "instrument panel" reading rather than "website with a nav". The footer uses
+ * the same treatment, so the document is bracketed by two panes of one material.
  */
 export function SiteHeader() {
   return (
