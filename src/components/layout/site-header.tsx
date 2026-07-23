@@ -12,8 +12,8 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
  */
 export function SiteHeader() {
   return (
-    <header className="border-line bg-background/80 sticky top-0 z-30 border-b backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="border-line bg-background/70 sticky top-0 z-30 border-b backdrop-blur-xl">
+      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* next/link rather than a bare anchor: client-side navigation with
             prefetch, and it keeps scroll/focus handling consistent. */}
         <Link
@@ -21,11 +21,17 @@ export function SiteHeader() {
           className="group flex items-center gap-2.5"
           aria-label="SkySift — home"
         >
+          {/*
+           * The mark is a chartreuse fill rather than an outlined tile. It is the
+           * one place the brand colour appears at full strength above the fold,
+           * and --primary-edge keeps its boundary visible on the light ground
+           * where chartreuse is only ~1.5:1 against white.
+           */}
           <span
-            className="border-line bg-surface inline-flex h-8 w-8 items-center justify-center rounded-lg border"
+            className="bg-primary border-primary-edge inline-flex h-8 w-8 items-center justify-center rounded-[10px] border"
             aria-hidden="true"
           >
-            <Wind className="text-primary h-4 w-4" />
+            <Wind className="text-primary-fg h-4 w-4" />
           </span>
 
           <span className="flex flex-col leading-none">
