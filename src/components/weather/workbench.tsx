@@ -10,7 +10,7 @@ import type { ConditionGroup, SortField, WeatherFilters } from "@/lib/weather/ty
 
 import { CityInput } from "./city-input";
 import { ConditionLegend } from "./condition-legend";
-import { FilterLedger } from "./filter-ledger";
+import { FilterFunnel } from "./filter-funnel";
 import { FilterPanel } from "./filter-panel";
 import {
   DemoBanner,
@@ -189,7 +189,7 @@ export function Workbench() {
 
         <section id="results" aria-label="Results" className="min-w-0">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <FilterLedger ledger={ledger} onClear={clearFilter} onReset={resetFilters} />
+            <FilterFunnel ledger={ledger} onClear={clearFilter} onReset={resetFilters} />
             <ViewToggle view={view} onChange={setView} />
           </div>
 
