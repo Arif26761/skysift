@@ -92,7 +92,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
 
-      <body className="sky-ambient flex min-h-full flex-col antialiased">
+      <body className="sky-grid flex min-h-full flex-col antialiased">
         {/*
          * Skip link. The filter panel sits between the header and the results,
          * so a keyboard user would otherwise tab through every control before

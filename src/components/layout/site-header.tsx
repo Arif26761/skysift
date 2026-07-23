@@ -6,11 +6,10 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 /**
  * The application header.
  *
- * Sticky, translucent and hairline-bordered rather than a solid bar, so content
- * scrolling beneath it stays faintly readable through the blur. That keeps the
- * header reading as a layer over the document rather than as a lid on top of it
- * — and it is what lets the ambient glow at the top of the page carry through
- * the bar instead of stopping abruptly at its lower edge.
+ * Sticky, translucent and hairline-bordered rather than a solid bar: the
+ * graticule behind it stays faintly visible as the page scrolls, which keeps the
+ * "instrument panel" reading rather than "website with a nav". The footer uses
+ * the same treatment, so the document is bracketed by two panes of one material.
  */
 export function SiteHeader() {
   return (
