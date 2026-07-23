@@ -28,27 +28,40 @@ interface WeatherCardProps {
 export function WeatherCard({ record, domain }: WeatherCardProps) {
   const style = conditionStyle(record.conditionGroup);
 
+  /*
+   * The condition's colour as a soft bloom in the corner, replacing the hard
+   * rail that used to run down the left edge.
+   *
+   * The rail meant the card carried three competing treatments at once — border,
+   * shadow and a 4px block of saturated colour — and the colour won, which made
+   * a grid of cards read as a stack of coloured tabs rather than as data. A soft
+   * wash tints the card with the same hue at a fraction of the visual weight, so
+   * the eye lands on the temperature first and picks up the condition second,
+   * which is the order they are actually read in.
+   *
+   * Painted as a `radial-gradient`, NOT as a blurred element. The first version
+   * was a 144px span carrying `filter: blur(64px)` — a blur radius wider than
+   * the element itself, which makes the compositor allocate a texture several
+   * times the span's size and promote it to its own layer. Five cards meant five
+   * of those, and every repaint (a theme swap, most visibly) had to re-rasterise
+   * all of them. A gradient produces the same bloom with no filter, no extra
+   * layer and no raster cost.
+   *
+   * `transition-[box-shadow,border-color]` rather than `transition-all` for the
+   * same reason: `all` also animated `background-color`, so every card eased to
+   * its new value on a theme swap and the page changed in a visible ripple
+   * instead of at once. Naming the two properties keeps the hover polish and
+   * takes the card out of the theme transition entirely.
+   *
+   * Still decorative: the icon and the text label below carry the meaning.
+   */
   return (
-    <article className="sky-enter border-line bg-surface shadow-card hover:shadow-raised hover:border-line-strong rounded-card relative overflow-hidden border p-4 transition-all duration-200">
-      {/*
-       * The condition's colour as a soft bloom in the corner, replacing the hard
-       * rail that used to run down the left edge.
-       *
-       * The rail meant the card carried three competing treatments at once —
-       * border, shadow and a 4px block of saturated colour — and the colour won,
-       * which made a grid of cards read as a stack of coloured tabs rather than
-       * as data. A blurred wash tints the card with the same hue at a fraction of
-       * the visual weight, so the eye lands on the temperature first and picks up
-       * the condition second, which is the order they are actually read in.
-       *
-       * Still decorative: the icon and the text label below carry the meaning.
-       */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-14 -right-12 h-36 w-36 rounded-full opacity-[0.16] blur-3xl dark:opacity-[0.26]"
-        style={{ backgroundColor: style.color }}
-      />
-
+    <article
+      className="sky-enter border-line bg-surface shadow-card hover:shadow-raised hover:border-line-strong rounded-card relative overflow-hidden border p-4 transition-[box-shadow,border-color] duration-200"
+      style={{
+        backgroundImage: `radial-gradient(60% 60% at 92% -8%, ${style.tint}, transparent 72%)`,
+      }}
+    >
       <div className="relative">
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">
