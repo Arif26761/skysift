@@ -56,19 +56,20 @@ function useIsDesktop(): boolean {
 }
 
 /**
- * Whether the filter panel is expanded, given the viewport and any explicit
- * toggle the user has made.
+ * Whether the filter panel is expanded, given the viewport and any toggle the
+ * user has made *during the current visit to this layout*.
  *
  * **Desktop ignores the override entirely, and that is the whole point.** The
  * panel's `<summary>` is `lg:hidden` — with its own column there is nothing to
  * disclose — so a collapsed panel on a wide screen has no control that can
- * reopen it. Letting a mobile toggle survive a resize therefore did not merely
- * look wrong, it made the filters unreachable.
+ * reopen it. Letting a narrow-screen toggle survive a resize therefore did not
+ * merely look wrong, it made the filters unreachable.
  *
- * The override is scoped to the narrow layout, where a visible summary exists to
- * undo it. On mobile the default is collapsed so the results own the first
- * screenful; toggling wins from there, and still wins after a round trip through
- * a wide viewport and back.
+ * On a narrow screen the default is collapsed, so the results own the first
+ * screenful. The override is discarded whenever the breakpoint changes (see
+ * `Workbench`), so *arriving* at the narrow layout always starts closed — the
+ * panel is a thing you open when you want to filter, not a state that follows
+ * you around between window sizes.
  *
  * Extracted from the component so this rule can be tested directly, without
  * standing up a DOM and stubbing `matchMedia`.
@@ -117,6 +118,29 @@ export function Workbench() {
    */
   const isDesktop = useIsDesktop();
   const [openOverride, setOpenOverride] = useState<boolean | null>(null);
+  const [lastBreakpoint, setLastBreakpoint] = useState(isDesktop);
+
+  /*
+   * Crossing the breakpoint starts a fresh layout session, discarding whatever
+   * the user toggled in the previous one.
+   *
+   * Without this, opening the panel on a phone, widening the window and coming
+   * back left it expanded — so the narrow layout no longer began with the
+   * results in view, which is the entire reason it collapses there. The panel
+   * should be something you open when you want to filter, not a state that
+   * follows you between window sizes.
+   *
+   * This is React's documented "adjust state during render" pattern rather than
+   * an effect: it is guarded by a comparison against the previous value, so it
+   * runs once per actual change and React re-renders immediately without ever
+   * committing the stale UI. An effect would paint the wrong state first and
+   * then correct it, which is a visible flash of an expanded panel.
+   */
+  if (lastBreakpoint !== isDesktop) {
+    setLastBreakpoint(isDesktop);
+    setOpenOverride(null);
+  }
+
   const filtersOpen = resolveFiltersOpen(isDesktop, openOverride);
 
   const { status, records, errors, meta, requestError, refetch } = useWeather(cities);

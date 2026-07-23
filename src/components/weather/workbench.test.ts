@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 import { resolveFiltersOpen } from "./workbench";
 
 /**
- * Regression cover for a real bug.
+ * Regression cover for two related bugs in the filter panel's open state.
  *
- * The original rule was `override ?? isDesktop`, which let a toggle made on a
- * narrow screen survive a resize. Because the panel's `<summary>` is hidden on
- * desktop, a collapsed panel there had no control that could reopen it — the
- * filters became unreachable rather than merely mis-defaulted.
+ * `override` means "what the user toggled *during the current visit* to this
+ * layout". `Workbench` discards it whenever the breakpoint changes, so `null`
+ * here represents having just arrived at a layout — which is why the round-trip
+ * cases below pass `null` after a resize rather than the previous value.
  */
 describe("resolveFiltersOpen", () => {
   it("collapses by default on a narrow screen", () => {
@@ -20,16 +20,17 @@ describe("resolveFiltersOpen", () => {
     expect(resolveFiltersOpen(true, null)).toBe(true);
   });
 
-  it("honours a toggle made on a narrow screen", () => {
+  it("honours a toggle made during the current narrow-screen visit", () => {
     expect(resolveFiltersOpen(false, true)).toBe(true);
     expect(resolveFiltersOpen(false, false)).toBe(false);
   });
 
   it("never lets a narrow-screen toggle hide the panel on a wide screen", () => {
     /*
-     * The bug. Closing the panel on mobile then widening the window left
+     * Bug one. Closing the panel on mobile then widening the window left
      * `override === false` in force, and with no visible summary on desktop
-     * there was nothing left to reopen it with.
+     * there was nothing left to reopen it with — unreachable UI, not merely a
+     * wrong default.
      */
     expect(resolveFiltersOpen(true, false)).toBe(true);
   });
@@ -39,12 +40,23 @@ describe("resolveFiltersOpen", () => {
     expect(resolveFiltersOpen(true, null)).toBe(true);
   });
 
-  it("restores the narrow-screen preference after a round trip through desktop", () => {
-    // Closed on mobile -> widened (forced open) -> back to mobile: still closed.
-    const override = false;
+  it("re-collapses on returning to a narrow screen after opening on one", () => {
+    /*
+     * Bug two. Opening the panel on a phone, widening, and coming back left it
+     * expanded — so the narrow layout no longer opened with results in view,
+     * which is the entire reason it collapses there.
+     *
+     * The breakpoint change clears the override, so the return trip is
+     * indistinguishable from a first visit.
+     */
+    expect(resolveFiltersOpen(false, true)).toBe(true); // opened on mobile
+    expect(resolveFiltersOpen(true, null)).toBe(true); // widened — override cleared
+    expect(resolveFiltersOpen(false, null)).toBe(false); // back to mobile: closed
+  });
 
-    expect(resolveFiltersOpen(false, override)).toBe(false);
-    expect(resolveFiltersOpen(true, override)).toBe(true);
-    expect(resolveFiltersOpen(false, override)).toBe(false);
+  it("also re-collapses when the panel was closed before the round trip", () => {
+    expect(resolveFiltersOpen(false, false)).toBe(false);
+    expect(resolveFiltersOpen(true, null)).toBe(true);
+    expect(resolveFiltersOpen(false, null)).toBe(false);
   });
 });
