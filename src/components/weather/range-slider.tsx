@@ -11,10 +11,7 @@ interface RangeSliderProps {
   /** `undefined` means "no lower bound", not "the lowest value". */
   readonly valueMin: number | undefined;
   readonly valueMax: number | undefined;
-  readonly onChange: (next: {
-    min: number | undefined;
-    max: number | undefined;
-  }) => void;
+  readonly onChange: (next: { min: number | undefined; max: number | undefined }) => void;
   /** Where the loaded data actually sits, drawn as ticks on the track. */
   readonly marks?: readonly number[];
   readonly format: (value: number) => string;

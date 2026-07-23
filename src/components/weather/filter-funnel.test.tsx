@@ -52,9 +52,7 @@ describe("FilterFunnel", () => {
 
     expect(screen.getByText(/cities loaded/)).toHaveTextContent("3 cities loaded");
     expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /reset all/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reset all/i })).not.toBeInTheDocument();
   });
 
   it("announces the outcome politely rather than making the whole rail live", () => {
@@ -118,9 +116,7 @@ describe("FilterFunnel", () => {
     const user = userEvent.setup();
     const { onClear } = renderFunnel({ country: "BD", minHumidity: 70 });
 
-    await user.click(
-      screen.getByRole("button", { name: /^Clear Country · BD/ }),
-    );
+    await user.click(screen.getByRole("button", { name: /^Clear Country · BD/ }));
 
     expect(onClear).toHaveBeenCalledWith("country");
     expect(onClear).toHaveBeenCalledTimes(1);
@@ -132,9 +128,7 @@ describe("FilterFunnel", () => {
     // where a user actually needs it urgently.
     renderFunnel({ country: "BD" });
 
-    expect(
-      screen.queryByRole("button", { name: /reset all/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reset all/i })).not.toBeInTheDocument();
   });
 
   it("collapses a temperature range into a single stage", () => {

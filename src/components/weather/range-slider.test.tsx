@@ -7,9 +7,9 @@ import { RangeSlider } from "./range-slider";
 
 const DOMAIN = { min: -30, max: 55 };
 
-function setup(
-  props: Partial<React.ComponentProps<typeof RangeSlider>> = {},
-): { onChange: ReturnType<typeof vi.fn> } {
+function setup(props: Partial<React.ComponentProps<typeof RangeSlider>> = {}): {
+  onChange: ReturnType<typeof vi.fn>;
+} {
   const onChange = vi.fn();
 
   render(

@@ -123,9 +123,7 @@ export function FilterFunnel({ ledger, onClear }: FilterFunnelProps) {
 }
 
 function Chevron() {
-  return (
-    <ChevronRight className="text-subtle h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-  );
+  return <ChevronRight className="text-subtle h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
 }
 
 /**
