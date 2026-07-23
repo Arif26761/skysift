@@ -312,6 +312,32 @@
   }
 }
 
+/*
+ * Theme swap: suppress every transition for the duration of the swap.
+ *
+ * Toggling `.dark` changes a colour on roughly two dozen elements at once. Each
+ * of those carries `transition-colors`, so each one *animates* to its new value
+ * independently — and they do it while the compositor is also rebuilding five
+ * blurred card blooms and two backdrop-filter panes. The result is a staggered
+ * fade that reads as half a second of lag, when the honest expectation for a
+ * theme toggle is that it is instantaneous.
+ *
+ * The transitions are wanted on hover, where they are a single element easing
+ * over a known change. They are not wanted here, where the whole page changes at
+ * once. So the swap is bracketed: kill transitions, flip the class, let one
+ * frame paint, restore them (see `theme-toggle.tsx`).
+ *
+ * Deliberately unlayered. Tailwind's utilities live in `@layer utilities`, and
+ * an unlayered `!important` outranks a layered one — inside the layer this rule
+ * would lose to the very utilities it needs to override.
+ */
+.sky-theme-switching,
+.sky-theme-switching *,
+.sky-theme-switching *::before,
+.sky-theme-switching *::after {
+  transition: none !important;
+}
+
 @layer utilities {
   /*
    * The graticule.

@@ -23,8 +23,32 @@ import { THEME_STORAGE_KEY } from "./theme-script";
  */
 export function ThemeToggle() {
   function toggle() {
-    const next = !document.documentElement.classList.contains("dark");
-    document.documentElement.classList.toggle("dark", next);
+    const root = document.documentElement;
+    const next = !root.classList.contains("dark");
+
+    /*
+     * Bracket the swap so it lands in one frame instead of easing.
+     *
+     * Flipping `.dark` changes a colour on ~26 elements at once, and each one
+     * carries `transition-colors`, so each animates to its new value
+     * independently while the compositor is also rebuilding five blurred card
+     * blooms and two backdrop-filter panes. That staggered fade reads as lag,
+     * and a theme toggle is one of the few interactions where users expect
+     * *instant*.
+     *
+     * Two nested rAFs, not one: the first fires before the browser has painted
+     * the new theme, so removing the class there would let the transitions catch
+     * the tail of the change and reintroduce the fade. The second runs after
+     * that paint, which is the earliest point it is safe to restore them.
+     */
+    root.classList.add("sky-theme-switching");
+    root.classList.toggle("dark", next);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        root.classList.remove("sky-theme-switching");
+      });
+    });
 
     try {
       // Persisting the explicit choice is what makes it outrank the OS setting
