@@ -1,7 +1,7 @@
 "use client";
 
 import { LayoutGrid, SlidersHorizontal, Table2 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
 import { buildFilterLedger, type FilterKey } from "@/lib/weather/filter-insights";
 import { filterWeatherData } from "@/lib/weather/filter";
@@ -27,6 +27,33 @@ const DEFAULT_CITIES = ["Dhaka", "Chittagong", "London", "Tokyo", "New York"] as
 
 type ViewMode = "cards" | "table";
 
+/** Matches the `lg:` breakpoint the two-column layout switches on. */
+const DESKTOP_QUERY = "(min-width: 1024px)";
+
+function subscribeToDesktop(onChange: () => void): () => void {
+  const query = window.matchMedia(DESKTOP_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+/**
+ * Read the desktop breakpoint as external state.
+ *
+ * The server snapshot is `true` on purpose. On desktop the panel's `<summary>`
+ * is hidden, so there is no visible control to reopen a collapsed panel — a
+ * closed default would be a dead end if hydration were slow or failed outright.
+ * Rendering open degrades the other way: a mobile visitor briefly sees an
+ * expanded panel, which is merely untidy. Given a choice of failure modes,
+ * take the one that leaves the control reachable.
+ */
+function useIsDesktop(): boolean {
+  return useSyncExternalStore(
+    subscribeToDesktop,
+    () => window.matchMedia(DESKTOP_QUERY).matches,
+    () => true,
+  );
+}
+
 /**
  * The single owner of application state.
  *
@@ -51,6 +78,23 @@ export function Workbench() {
   const [cities, setCities] = useState<readonly string[]>(DEFAULT_CITIES);
   const [filters, setFilters] = useState<WeatherFilters>({});
   const [view, setView] = useState<ViewMode>("cards");
+
+  /*
+   * Whether the filter panel is expanded.
+   *
+   * The viewport decides the *default* — at 375px the results, not the controls,
+   * must own the first screenful — and any explicit toggle by the user wins from
+   * then on. Keeping the override as `null` rather than seeding it with the
+   * current breakpoint means a user who never touches the disclosure keeps
+   * getting the right default when they rotate or resize.
+   *
+   * The media query is read through `useSyncExternalStore` rather than an effect
+   * that calls `setState`: the breakpoint is external state that React should
+   * subscribe to, not a render result to be corrected after the fact.
+   */
+  const isDesktop = useIsDesktop();
+  const [openOverride, setOpenOverride] = useState<boolean | null>(null);
+  const filtersOpen = openOverride ?? isDesktop;
 
   const { status, records, errors, meta, requestError, refetch } = useWeather(cities);
 
@@ -160,16 +204,19 @@ export function Workbench() {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/*
          * Desktop: a sticky rail beside the results, so filters stay reachable
-         * while scrolling a long list.
-         * Mobile: a native <details> disclosure. Native because it is keyboard
-         * operable, announced correctly and needs no JavaScript — and because at
-         * 375px the results, not the controls, must own the screen.
+         * while scrolling a long list. The <summary> is hidden here — there is
+         * nothing to disclose when the panel has its own column.
+         * Mobile: a native <details> disclosure, collapsed by default so the
+         * results own the first screenful. Native because it is keyboard
+         * operable and announced correctly for free; only its *default* open
+         * state is driven from React, so the element still behaves like a
+         * disclosure rather than a div pretending to be one.
          */}
         <aside className="lg:sticky lg:top-20 lg:self-start">
           <details
-            className="border-line bg-surface shadow-card group rounded-[14px] border p-4 lg:open:p-4"
-            // Open by default on desktop; the summary is hidden there anyway.
-            open
+            className="border-line bg-surface shadow-card group rounded-[16px] border p-4 lg:open:p-4"
+            open={filtersOpen}
+            onToggle={(event) => setOpenOverride(event.currentTarget.open)}
           >
             <summary className="text-text flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold lg:hidden">
               <span className="inline-flex items-center gap-2">
