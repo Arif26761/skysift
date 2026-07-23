@@ -10,8 +10,8 @@ temperature, condition and humidity — and see **exactly what each filter remov
 [**▶ Live demo**](https://skysift-five.vercel.app) · [Screenshots](#screenshots) · [API](#the-api)
 
 [![CI](https://github.com/Arif26761/skysift/actions/workflows/ci.yml/badge.svg)](https://github.com/Arif26761/skysift/actions/workflows/ci.yml)
-![tests](https://img.shields.io/badge/tests-107%20passing-0e8a16)
-![TypeScript](https://img.shields.io/badge/TypeScript-strict-1363df)
+![tests](https://img.shields.io/badge/tests-123%20passing-4d7c0f)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-4d7c0f)
 
 </div>
 
@@ -34,18 +34,31 @@ Every filter UI shares one blind spot: you narrow the data, rows vanish, and
 nothing tells you _which control_ removed them. Users respond by resetting things
 at random.
 
-### The Filter Ledger
+### The Filter Funnel
 
-Each active filter carries a chip annotated with **how many records it excluded**:
+The reduction is drawn as a pipeline. Each stage names a filter, reports how many
+cities it is hiding, and **is itself the button that clears it** — so the
+explanation and the fix are the same object:
 
-![The Filter Ledger](./docs/screenshots/ledger-light.png)
+![The Filter Funnel](./docs/screenshots/funnel-light.png)
 
 ```
-Showing 2 of 5   [Condition · Clouds −2 ×]  [Humidity ≥ 60% −0 ×]   Reset all
+5 loaded  ›  Temp ≥ 5° −0  ›  Condition · Clear −3  ›  Humidity ≥ 60% −0  ›  1 shown
 ```
 
-A chip reading `−0` is doing nothing on its own — itself useful, because it tells
+A stage reading `−0` is doing nothing on its own — itself useful, because it tells
 you not to bother touching that one.
+
+It is deliberately **not** drawn as a tapering funnel shape. `excluded` is a
+_marginal_ contribution — how many records return if that one filter is relaxed
+with the others left in place — so when two filters reject the same city, neither
+gets credit and the stages **do not sum** to `loaded − shown`. Segments each
+shaving a proportional slice off a narrowing bar would draw sequential
+subtraction over numbers that aren't sequential, and the widths would not
+reconcile with the endpoints. Each stage instead carries a hairline _blame bar_
+scaled against the largest exclusion in the current set — a true statement about
+marginal contributions — and the endpoints stay exact numbers, never inferred
+from a width.
 
 When results hit zero, the empty state **names the cause** instead of shrugging:
 
@@ -57,6 +70,23 @@ that one omitted. **This is only affordable because the filter function is pure*
 — six passes over a small array, no I/O, no chance of the calls interfering. The
 architectural discipline Part 2 asked for unlocked a feature the brief never
 requested.
+
+### The design language
+
+The interface chrome is **chartreuse**, and that's a functional constraint rather
+than a taste call. The condition language already owns the entire cold-blue
+family plus amber (Rain blue, Drizzle sky, Snow pale ice, Clear amber, Storm
+violet). If chrome sat in any of those, a chip would be genuinely ambiguous —
+_filter control, or precipitation?_ Chartreuse is the one hue those semantics
+leave unclaimed, so chrome and data can never be confused.
+
+It comes with a real constraint, handled rather than ignored: chartreuse measures
+about **1.5:1 on a light ground**, so it cannot legally carry text there. It is a
+_fill_ colour, always with near-black on top; where the brand hue must actually
+_be_ text, a darkened `--primary-text` is used instead. A third token,
+`--primary-edge`, draws a 1px border around chartreuse fills — a filled control's
+label can be perfectly legible while its **edge** is invisible, and WCAG 1.4.11
+asks for 3:1 on a component's boundary, not just its text.
 
 ---
 
@@ -75,7 +105,7 @@ requested.
 | Loading / empty / inline error states                         | [`states.tsx`](./src/components/weather/states.tsx)                                                                                |
 | Responsive at ~375px → desktop                                | [screenshots below](#screenshots)                                                                                                  |
 | Consistent visual language for conditions                     | [`conditions.ts`](./src/lib/weather/conditions.ts)                                                                                 |
-| A few unit tests                                              | **107 tests**, 8 files                                                                                                             |
+| A few unit tests                                              | **123 tests**, 9 files                                                                                                             |
 | README with setup + screenshots                               | this file                                                                                                                          |
 | Live demo _(optional plus)_                                   | [skysift-five.vercel.app](https://skysift-five.vercel.app)                                                                         |
 
@@ -254,17 +284,38 @@ one implementation, one test suite, two runtimes, no drift.
   is derived, which is why the table headers and the sort dropdown cannot
   disagree — they're two views of one value, not two copies of one fact.
 
-### Design
+### Controls: native where native is better, custom only where it isn't
 
-The interface chrome is **teal**, and that's a functional constraint rather than
-a taste call: the condition language owns the whole cold-blue family (Rain blue,
-Drizzle sky, Snow pale ice). If chrome were also blue, a blue chip would be
-genuinely ambiguous — _filter control, or rain?_ Chrome owns teal, data owns
-blue, nothing collides.
+Country and sort field stay **native `<select>`**. Their options are plain text,
+the lists are short, and native brings type-ahead, correct focus handling and the
+platform's own wheel picker on a phone. Replacing that with a custom listbox
+means reimplementing all of it and getting one part subtly wrong.
 
-The light theme is warm chart paper rather than cool white, because the faint
-32px graticule behind the page is meant to read as _ruled paper_ — the way a
-synoptic chart is printed — rather than as a texture laid over a website.
+Native is overridden only where it genuinely cannot express the requirement:
+
+- **Conditions are a chip group**, because the brief asks for an icon-and-colour
+  language per condition and an `<option>` can render neither. Selecting the
+  active chip clears it, so the control is its own undo.
+- **Temperature is a dual-thumb range**, because one `<input>` cannot carry two
+  bounds. It is built from two real `<input type="range">` stacked on one track,
+  so arrow keys, Home/End, PageUp/PageDown, touch and ARIA all work without being
+  reimplemented — the inputs are click-through and only the thumbs take pointer
+  events, which is what lets two overlapping tracks behave as one control.
+
+The slider's contract is the interesting part: **a thumb parked at the domain
+edge emits `undefined`, not the number under it.** `WeatherFilters` treats an
+absent bound as "don't constrain" and a present one as a real comparison, so the
+two states have to be reconciled somewhere. Doing it in the control means
+dragging fully left genuinely clears the bound and the funnel stops listing
+temperature as active. Emitting the edge number instead would leave a permanently
+"active" filter that excludes nothing — exactly the phantom control the funnel
+exists to expose.
+
+Its domain is fixed (`−30…55 °C`) rather than derived from the data, because
+deriving it would move the control under the user: add one Arctic city and every
+thumb position silently means something new. The data's real extent is drawn on
+the track as **ticks** instead, so choosing where to drag is an aimed decision
+rather than a blind one.
 
 Every condition is encoded **three times** (colour + icon + text), which is how
 "don't rely on colour alone" is actually met.
@@ -323,19 +374,20 @@ route handler). They can't rot.
 
 ## Testing
 
-**107 tests across 8 files.** CI runs typecheck → lint → format → test → build on
+**123 tests across 9 files.** CI runs typecheck → lint → format → test → build on
 every push and PR.
 
-| Area                      | Covers                                                                                                                                  |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `filter.test.ts`          | Each filter alone, all combined, both sort orders, sort stability, purity, the `NaN` edge case, the brief's exact example call          |
-| `filter-insights.test.ts` | Marginal exclusion counts, culprit detection, label formatting, purity                                                                  |
-| `conditions.test.ts`      | Condition normalisation, atmospheric collapsing, unknown fallback, style completeness                                                   |
-| `fetch-weather.test.ts`   | Batch isolation, contract-violating providers, hung-provider deadlines, ordering, de-duplication, the city cap, the concurrency ceiling |
-| `openweather.test.ts`     | Every HTTP status mapping, malformed payloads, transport failures, **API-key leakage**                                                  |
-| `cache.test.ts`           | Hit, expiry (injected clock), failure bypass, eviction                                                                                  |
-| `city-input.test.tsx`     | Enter/comma commit, whitespace collapsing, duplicate rejection, Backspace, per-chip accessible names                                    |
-| `filter-ledger.test.tsx`  | Exclusion counts, `−0` rendering, per-chip clearing, range collapsing, `aria-live`                                                      |
+| Area                      | Covers                                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `filter.test.ts`          | Each filter alone, all combined, both sort orders, sort stability, purity, the `NaN` edge case, the brief's exact example call                         |
+| `filter-insights.test.ts` | Marginal exclusion counts, culprit detection, label formatting, purity                                                                                 |
+| `conditions.test.ts`      | Condition normalisation, atmospheric collapsing, unknown fallback, style completeness                                                                  |
+| `fetch-weather.test.ts`   | Batch isolation, contract-violating providers, hung-provider deadlines, ordering, de-duplication, the city cap, the concurrency ceiling                |
+| `openweather.test.ts`     | Every HTTP status mapping, malformed payloads, transport failures, **API-key leakage**                                                                 |
+| `cache.test.ts`           | Hit, expiry (injected clock), failure bypass, eviction                                                                                                 |
+| `city-input.test.tsx`     | Enter/comma commit, whitespace collapsing, duplicate rejection, Backspace, per-chip accessible names                                                   |
+| `filter-funnel.test.tsx`  | Exclusion counts, `−0` rendering, per-stage clearing, range collapsing, consequence-phrased labels, `aria-live`, keyboard operation, blame-bar scaling |
+| `range-slider.test.tsx`   | The edge-means-`undefined` contract in both directions, thumb clamping (which caught a real swap bug), tick rendering, `aria-valuetext`                |
 
 The core needs **no mocks at all** — pass an array, assert on an array. That's the
 dividend of keeping it pure.
@@ -350,9 +402,14 @@ dividend of keeping it pure.
 - One global `:focus-visible` ring, so no component _can_ forget one
 - Skip link to results (the filter panel sits between the header and the data)
 - `aria-live="polite"` on the result count; `aria-sort` on the active column
-- Per-item accessible names (`Remove Dhaka`, not `Remove`)
-- Native form controls throughout — correct type-ahead, escape handling and
-  mobile pickers, for free
+- Per-item accessible names (`Remove Dhaka`, not `Remove`) and
+  consequence-phrased ones on funnel stages (`Clear Country · BD, currently
+hiding 1 city`)
+- Native form controls wherever native is viable — correct type-ahead, escape
+  handling and mobile pickers, for free. The two custom controls are built _on_
+  native elements rather than replacing them: the range slider is two real
+  `<input type="range">`, so keyboard and touch behaviour is inherited, not
+  reimplemented
 - `prefers-reduced-motion` honoured globally
 
 ---

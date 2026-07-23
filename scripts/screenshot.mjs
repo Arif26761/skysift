@@ -27,6 +27,31 @@ const DESKTOP = { width: 1440, height: 1100 };
 const MOBILE = { width: 375, height: 820 };
 
 /**
+ * Drive an `<input type="range">` the way a user would, as far as React is
+ * concerned.
+ *
+ * Assigning `.value` directly does not work: React installs its own value setter
+ * on the input, tracks the last value it wrote, and skips the change event when
+ * the two agree. Calling the *native* prototype setter first makes React see a
+ * genuine change, and the bubbled input/change events then run the normal
+ * handler rather than a synthetic one that bypasses application logic.
+ *
+ * @param {import("playwright").Locator} locator
+ * @param {number} value
+ */
+async function setRange(locator, value) {
+  await locator.evaluate((element, next) => {
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value",
+    ).set;
+    setter.call(element, String(next));
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+  }, value);
+}
+
+/**
  * @typedef {object} Scene
  * @property {string} name
  * @property {{width:number,height:number}} viewport
@@ -43,22 +68,20 @@ const SCENES = [
   { name: "overview-dark", viewport: DESKTOP, theme: "dark", fullPage: true },
 
   {
-    // The signature feature: chips annotated with what each filter excluded.
-    name: "ledger-light",
+    // The signature feature: the funnel, showing what each filter removed.
+    name: "funnel-light",
     viewport: DESKTOP,
     theme: "light",
     async act(page) {
       /*
-       * Pick by index, not by value.
+       * Pick the first chip, not a named condition.
        *
-       * The condition dropdown is populated from whatever weather is actually
-       * loaded, so hard-coding "Clouds" makes this scene fail on any day when no
-       * selected city is cloudy — which is exactly what happened. Index 1 is the
-       * first real condition after the "All conditions" placeholder, whatever it
-       * happens to be.
+       * The condition chips are built from whatever weather actually loaded, so
+       * hard-coding "Clouds" makes this scene fail on any day when no selected
+       * city is cloudy — which is exactly what happened once already.
        */
-      await page.selectOption("#filter-condition", { index: 1 });
-      await page.fill("#filter-humidity", "60");
+      await page.locator("#filter-condition button").first().click();
+      await setRange(page.locator("#filter-humidity"), 60);
       await page.selectOption("#filter-sort", "temperature");
     },
   },
@@ -69,7 +92,7 @@ const SCENES = [
     viewport: DESKTOP,
     theme: "dark",
     async act(page) {
-      await page.fill("#filter-min-temp", "45");
+      await setRange(page.getByLabel("Temperature, lower bound"), 45);
     },
   },
 

@@ -16,9 +16,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
-/** WCAG 2.1 minimums. Large text is >=18.66px bold or >=24px. */
+/** WCAG 2.1 minimum for normal-size body text. */
 const AA_NORMAL = 4.5;
-const AA_LARGE = 3.0;
 /** Non-text UI (borders, focus rings, icon-only affordances) — WCAG 1.4.11. */
 const AA_UI = 3.0;
 
@@ -73,7 +72,22 @@ function parseBlock(css, selector) {
   return tokens;
 }
 
-/** [foreground token, background token, minimum ratio, description] */
+/**
+ * [foreground token, background token, minimum ratio, description]
+ *
+ * Note what is deliberately *not* checked: `--primary` as a text colour.
+ *
+ * Chartreuse cannot clear 4.5:1 on a light ground — it measures about 1.5:1 on
+ * white — and no amount of tuning fixes that without ceasing to be chartreuse.
+ * So the design does not ask it to. `--primary` is a **fill**, always carrying
+ * `--primary-fg` (near-black) on top, which is the `primary-fg on primary` row
+ * below. Where the brand hue genuinely has to *be* text, components use
+ * `--primary-text`, a darkened variant that does clear AA — and that is the row
+ * that replaced the old `primary on surface` check.
+ *
+ * Asserting `primary on surface >= 4.5` would be asserting a rule the design
+ * intentionally inverts, and it would fail forever while nothing was wrong.
+ */
 const CHECKS = [
   ["text", "surface", AA_NORMAL, "body text on a card"],
   ["text", "background", AA_NORMAL, "body text on the page"],
@@ -81,13 +95,20 @@ const CHECKS = [
   ["text-muted", "background", AA_NORMAL, "secondary text on the page"],
   ["text-subtle", "surface", AA_NORMAL, "captions and meta on a card"],
   ["text-subtle", "background", AA_NORMAL, "captions on the page"],
-  ["primary", "surface", AA_NORMAL, "links and active labels"],
-  ["primary", "background", AA_NORMAL, "links on the page"],
+  ["primary-text", "surface", AA_NORMAL, "brand hue used as text, on a card"],
+  ["primary-text", "background", AA_NORMAL, "brand hue used as text, on the page"],
   ["danger", "surface", AA_NORMAL, "exclusion counts, error text"],
   ["warning", "surface", AA_NORMAL, "failed-city badge text"],
   ["success", "surface", AA_NORMAL, "success text"],
-  ["accent", "surface", AA_LARGE, "accent, used at display sizes only"],
-  ["primary-fg", "primary", AA_NORMAL, "label on a primary button"],
+  ["primary-fg", "primary", AA_NORMAL, "label on a primary fill"],
+  ["primary-edge", "surface", AA_UI, "border defining a chartreuse fill's edge"],
+  /*
+   * Gradient text is still text. Both ends of the wordmark ramp are checked,
+   * because a gradient that starts legible and ends invisible passes any audit
+   * that only samples one stop.
+   */
+  ["brand-from", "background", AA_NORMAL, "wordmark gradient, start of ramp"],
+  ["brand-to", "background", AA_NORMAL, "wordmark gradient, end of ramp"],
   ["ring", "background", AA_UI, "focus ring against the page"],
   ["ring", "surface", AA_UI, "focus ring against a card"],
   ["border-strong", "surface", AA_UI, "emphasised control borders"],
