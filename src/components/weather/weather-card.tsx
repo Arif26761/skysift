@@ -14,11 +14,12 @@ interface WeatherCardProps {
 /**
  * One city.
  *
- * The condition is encoded three times over — a coloured rail down the left
- * edge, the icon, and the text label. That redundancy is not indecision: it is
- * what makes the card readable when colour is unavailable (colour-blindness,
- * greyscale printing) or invisible (screen readers). "Don't rely on colour
- * alone" is a requirement, and three encodings is how it is met.
+ * The condition is encoded three times over — a colour wash behind the card, the
+ * icon, and the text label. That redundancy is not indecision: it is what makes
+ * the card readable when colour is unavailable (colour-blindness, greyscale
+ * printing) or invisible (screen readers). "Don't rely on colour alone" is a
+ * requirement, and only the last of those three survives losing colour, which is
+ * exactly why the label is never dropped for a tidier layout.
  *
  * Temperature is the hero because it is the value people scan for. Humidity and
  * wind sit below in mono, where they can be compared down a column without the
@@ -28,18 +29,30 @@ export function WeatherCard({ record, domain }: WeatherCardProps) {
   const style = conditionStyle(record.conditionGroup);
 
   return (
-    <article className="sky-enter border-line bg-surface shadow-card hover:shadow-raised hover:border-line-strong relative overflow-hidden rounded-[14px] border p-4 transition-all">
-      {/* The condition rail. Decorative — the label below carries the meaning. */}
+    <article className="sky-enter border-line bg-surface shadow-card hover:shadow-raised hover:border-line-strong rounded-card relative overflow-hidden border p-4 transition-all duration-200">
+      {/*
+       * The condition's colour as a soft bloom in the corner, replacing the hard
+       * rail that used to run down the left edge.
+       *
+       * The rail meant the card carried three competing treatments at once —
+       * border, shadow and a 4px block of saturated colour — and the colour won,
+       * which made a grid of cards read as a stack of coloured tabs rather than
+       * as data. A blurred wash tints the card with the same hue at a fraction of
+       * the visual weight, so the eye lands on the temperature first and picks up
+       * the condition second, which is the order they are actually read in.
+       *
+       * Still decorative: the icon and the text label below carry the meaning.
+       */}
       <span
-        className="absolute inset-y-0 left-0 w-1"
-        style={{ backgroundColor: style.color }}
         aria-hidden="true"
+        className="pointer-events-none absolute -top-14 -right-12 h-36 w-36 rounded-full opacity-[0.16] blur-3xl dark:opacity-[0.26]"
+        style={{ backgroundColor: style.color }}
       />
 
-      <div className="pl-2">
+      <div className="relative">
         <header className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="font-display text-text truncate text-base font-semibold">
+            <h3 className="font-display text-text truncate text-[15px] font-semibold">
               {record.city}
             </h3>
             <p className="text-subtle sky-numeric mt-0.5 text-[11px] tracking-wide">
@@ -48,7 +61,7 @@ export function WeatherCard({ record, domain }: WeatherCardProps) {
           </div>
 
           <span
-            className="border-line inline-flex shrink-0 items-center gap-1.5 rounded-full border py-1 pr-2.5 pl-2 text-xs"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full py-1 pr-2.5 pl-2 text-xs"
             style={{ backgroundColor: style.tint }}
           >
             <ConditionIcon group={record.conditionGroup} className="h-3.5 w-3.5" />
@@ -56,10 +69,15 @@ export function WeatherCard({ record, domain }: WeatherCardProps) {
           </span>
         </header>
 
-        <div className="mt-3 flex items-baseline gap-2">
-          <p className="sky-numeric text-text text-3xl leading-none font-semibold">
+        {/*
+         * The temperature is the hero and now reads like it. At the old 3xl it
+         * competed with the city name for first look; the jump to 4xl with the
+         * unit dropped to muted makes the scan order unambiguous.
+         */}
+        <div className="mt-4 flex items-baseline gap-2">
+          <p className="sky-numeric text-text text-4xl leading-none font-semibold">
             {record.temperature.toFixed(1)}
-            <span className="text-muted text-xl">°C</span>
+            <span className="text-muted ml-0.5 text-xl font-medium">°C</span>
           </p>
           <p className="text-subtle text-xs">
             feels <span className="sky-numeric">{record.feelsLike.toFixed(1)}°</span>
@@ -68,7 +86,7 @@ export function WeatherCard({ record, domain }: WeatherCardProps) {
 
         {/* The description is the only free text on the card, so it is kept small
             and muted — it adds nuance without competing with the numbers. */}
-        <p className="text-muted mt-1 truncate text-xs capitalize">
+        <p className="text-muted mt-1.5 truncate text-xs capitalize">
           {record.description}
         </p>
 

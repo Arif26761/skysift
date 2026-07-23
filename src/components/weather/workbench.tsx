@@ -181,9 +181,15 @@ export function Workbench() {
   const showEmpty = !isLoading && requestError === null && visible.length === 0;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      {/*
+       * Wider than the old max-w-7xl (1280px) canvas. At 1280 the card grid
+       * capped at three columns and left a broad dead margin on a modern
+       * display; 1600 lets it reach four, so the results read as a set rather
+       * than as a short list floating in whitespace.
+       */}
       <header className="max-w-2xl">
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-[32px] sm:leading-[1.15]">
           Weather data, <span className="sky-brand-text">filtered</span>.
         </h1>
         <p className="text-muted mt-2 text-sm leading-relaxed">
@@ -202,7 +208,7 @@ export function Workbench() {
         <CityInput cities={cities} onChange={setCities} />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[264px_minmax(0,1fr)]">
         {/*
          * Desktop: a sticky rail beside the results, so filters stay reachable
          * while scrolling a long list. The <summary> is hidden here — there is
@@ -274,7 +280,7 @@ export function Workbench() {
                   onReset={resetFilters}
                 />
               ) : view === "cards" ? (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {visible.map((record) => (
                     <WeatherCard key={record.city} record={record} domain={domain} />
                   ))}
@@ -300,7 +306,7 @@ export function Workbench() {
                * some cities worked, these did not.
                */}
               {errors.length > 0 && (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {errors.map((error) => (
                     <ErrorCard
                       key={`${error.city}-${error.code}`}

@@ -199,10 +199,37 @@ function Stage({
       title={consequence}
       className="group border-line bg-surface hover:border-border-strong hover:bg-surface-2 relative inline-flex shrink-0 items-center gap-1.5 overflow-hidden rounded-full border py-1 pr-2 pl-2.5 text-xs transition-colors"
     >
-      <span className="text-text font-medium">{label}</span>
+      {/*
+       * The blame bar: a wash filling the chip from the left, scaled against the
+       * worst offender in the current set.
+       *
+       * It was a 2px line on the chip's bottom edge, which collided with a
+       * convention it could not win against — a red rule under text is a
+       * spelling error everywhere else on a computer, and two of them side by
+       * side read as broken rather than as a comparison. Filling the chip
+       * carries the same proportion without borrowing that meaning.
+       *
+       * Painted first, and every sibling below is `relative`, so the wash sits
+       * behind the label instead of over it — an absolutely positioned element
+       * paints above static siblings regardless of document order.
+       *
+       * It transitions rather than snapping, so dragging a slider reads as one
+       * filter's cost growing relative to the others — the comparison is the
+       * information. Reduced-motion users get the width without the travel,
+       * handled globally in globals.css.
+       */}
+      {showBlame && (
+        <span
+          aria-hidden="true"
+          className="bg-danger/12 absolute inset-y-0 left-0 transition-[width] duration-300 ease-out"
+          style={{ width: `${blame}%` }}
+        />
+      )}
+
+      <span className="text-text relative font-medium">{label}</span>
 
       <span
-        className={`sky-numeric font-semibold ${
+        className={`sky-numeric relative font-semibold ${
           excluded > 0 ? "text-danger" : "text-subtle"
         }`}
       >
@@ -210,24 +237,9 @@ function Stage({
       </span>
 
       <X
-        className="text-subtle group-hover:text-danger h-3 w-3 shrink-0 transition-colors"
+        className="text-subtle group-hover:text-danger relative h-3 w-3 shrink-0 transition-colors"
         aria-hidden="true"
       />
-
-      {/*
-       * The blame bar. Hairline, seated on the chip's bottom edge, width scaled
-       * against the worst offender. It transitions rather than snapping so that
-       * dragging a slider reads as one filter's cost growing relative to the
-       * others — the comparison is the information. Reduced-motion users get the
-       * width without the travel, handled globally in globals.css.
-       */}
-      {showBlame && (
-        <span
-          aria-hidden="true"
-          className="bg-danger/70 absolute bottom-0 left-0 h-0.5 rounded-full transition-[width] duration-300 ease-out"
-          style={{ width: `${blame}%` }}
-        />
-      )}
     </button>
   );
 }

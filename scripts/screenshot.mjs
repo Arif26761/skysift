@@ -22,7 +22,13 @@ import { chromium } from "playwright";
 const BASE_URL = process.env.SCREENSHOT_URL ?? "http://localhost:3000";
 const OUT_DIR = path.resolve("docs/screenshots");
 
-const DESKTOP = { width: 1440, height: 1100 };
+/*
+ * 1600 rather than 1440: the layout's max canvas is 1600px and the card grid
+ * only reaches four columns at Tailwind's 2xl (1536px). Shooting at 1440 would
+ * document a three-column fallback the design does not consider its primary
+ * state.
+ */
+const DESKTOP = { width: 1600, height: 1100 };
 /** The mobile floor the brief names explicitly. */
 const MOBILE = { width: 375, height: 820 };
 

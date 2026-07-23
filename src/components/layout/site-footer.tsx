@@ -5,7 +5,7 @@ import { CodeXml } from "lucide-react";
 export function SiteFooter() {
   return (
     <footer className="border-line mt-auto border-t">
-      <div className="text-subtle mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="text-subtle mx-auto flex w-full max-w-[1600px] flex-col gap-2 px-4 py-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <p>
           Built by{" "}
           <a

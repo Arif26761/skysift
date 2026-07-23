@@ -30,34 +30,42 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* --------------------------------------------------------------------------
- * Light theme — "bone".
+ * Light theme — "paper".
  *
- * The page base is a warm, near-neutral off-white with no hue lent to any
- * condition family, so it stays out of the way of the one colour decision
- * that matters: chartreuse is the entire brand signal, and it needs a quiet
- * ground to sit on. Weather conditions already own blue, sky, grey, amber,
- * violet, cyan and slate (see `src/lib/weather/conditions.ts`); chrome may
- * not enter any of them, which is why there is no second brand hue here —
- * discipline is the point, not an oversight.
+ * A near-neutral off-white with a faint cool cast, lending no hue to any
+ * condition family, so it stays out of the way of the one colour decision that
+ * matters: chartreuse is the entire brand signal and needs a quiet ground.
+ * Weather conditions already own blue, sky, grey, amber, violet, cyan and slate
+ * (see `src/lib/weather/conditions.ts`); chrome may not enter any of them, which
+ * is why there is no second brand hue here — discipline is the point, not an
+ * oversight.
  * ----------------------------------------------------------------------- */
 :root {
-  --background: #f4f4f0;
+  /*
+   * A cool-leaning neutral, not the warm "bone" this started as.
+   *
+   * Warm grey plus chartreuse mixes toward olive — the two share yellow, so the
+   * ground kept dragging the brand hue somewhere military. Shifting the neutrals
+   * a few degrees cool puts distance between ground and brand, and the
+   * chartreuse reads electric instead of muddy without its own value changing.
+   */
+  --background: #f6f7f3;
   --surface: #ffffff;
-  --surface-2: #ebebe4;
-  --surface-3: #dedcd3;
+  --surface-2: #f0f2ec;
+  --surface-3: #e5e8de;
 
-  --border: #e0dfd7;
+  --border: #e6e8e0;
   /* Darkened until it clears 3:1 against --surface (WCAG 1.4.11, non-text UI). */
-  --border-strong: #908f84;
+  --border-strong: #8f9184;
 
-  --text: #14150f;
-  --text-muted: #55564d;
+  --text: #13150e;
+  --text-muted: #53564b;
   /*
    * Captions must clear 4.5:1 against --background, not just --surface. The page
    * base is darker than a card, so it is the binding constraint — a value tuned
    * against white alone would pass on cards and quietly fail on the page.
    */
-  --text-subtle: #6b6c63;
+  --text-subtle: #6a6d61;
 
   /*
    * Chartreuse fails AA as text on a light ground, so it is never asked to
@@ -103,10 +111,15 @@
   /* The ruling — a faint, cool-green ink, felt rather than seen. */
   --grid-line: rgba(80, 90, 40, 0.06);
 
-  --shadow-card:
-    0 1px 2px rgba(30, 32, 20, 0.05), 0 8px 24px -12px rgba(30, 32, 20, 0.16);
+  /*
+   * Two-part shadows: a tight contact shadow that seats the card on the page,
+   * plus a wide diffuse one for depth. A single mid-blur shadow — the old
+   * approach — reads as a grey halo rather than as light, which is the tell of a
+   * dated card. Both stay low-opacity so the page keeps its paper quality.
+   */
+  --shadow-card: 0 1px 2px rgba(20, 22, 14, 0.04), 0 4px 12px -4px rgba(20, 22, 14, 0.07);
   --shadow-raised:
-    0 2px 4px rgba(30, 32, 20, 0.07), 0 16px 32px -16px rgba(30, 32, 20, 0.22);
+    0 2px 6px rgba(20, 22, 14, 0.06), 0 14px 30px -10px rgba(20, 22, 14, 0.13);
 }
 
 /* --------------------------------------------------------------------------
@@ -121,18 +134,28 @@
  * here — the darkened light-mode variant is a light-theme-only concession.
  * ----------------------------------------------------------------------- */
 .dark {
-  --background: #0d0e0b;
-  --surface: #151711;
-  --surface-2: #1d1f18;
-  --surface-3: #262920;
+  /*
+   * Deeper than before, with wider gaps between the surface steps.
+   *
+   * The old ramp sat #151711 / #1d1f18 / #262920 — close enough together that a
+   * raised panel and the page behind it read as one flat plane, which is most of
+   * what made the dark theme look dated. Dropping the ground toward true black
+   * and spacing the steps further apart gives elevation somewhere to register,
+   * so depth comes from the surfaces themselves rather than from borders drawn
+   * around everything.
+   */
+  --background: #0a0b08;
+  --surface: #111310;
+  --surface-2: #191c17;
+  --surface-3: #232720;
 
-  --border: #2a2d24;
+  --border: #23271f;
   /* Lightened until it clears 3:1 against --surface (WCAG 1.4.11, non-text UI). */
-  --border-strong: #676d5c;
+  --border-strong: #666c5b;
 
-  --text: #eceee6;
-  --text-muted: #a3a89a;
-  --text-subtle: #7c8175;
+  --text: #edefe8;
+  --text-muted: #a2a698;
+  --text-subtle: #7b7f72;
 
   --primary: #bef264;
   --primary-hover: #d9f99d;
